@@ -1,0 +1,76 @@
+AverageFA	Whole Brain	:	3	4	5	6	7	8	17	18	19	20	21	22	23	24	25	26	27	28	29	30	31	32	33	34	35	36	37	38	39	40	41	42	43	44	45	46	47	48	
+ACR	Anterior corona radiata	:	23	24				
+ACR_L	Anterior corona radiata left	:	24					
+ACR_R	Anterior corona radiata right	:	23					
+ALIC	Anterior limb of internal capsule	:	17	18				
+ALIC_L	Anterior limb of internal capsule left	:	18					
+ALIC_R	Anterior limb of internal capsule right	:	17						
+BCC	Body of corpus callosum	:	4					
+CC	Corpus callosum	:	3	4	5			
+CG	Cingulum (Cing)	:	35	36	37	38		
+CGC	Cingulum (cingulate gyrus)	:	35	36				
+CGC_L	Cingulum (cingulate gyrus) left	:	36					
+CGC_R	Cingulum (cingulate gyrus) right	:	35					
+CGH	Cingulum (hippocampus)	:	37	38				
+CGH_L	Cingulum (hippocampus) left	:	38					
+CGH_R	Cingulum (hippocampus) right	:	37					
+CR	Corona radiata	:	23	24	25	26	27	28
+CR_L	Corona radiata left	:	24	26	28			
+CR_R	Corona radiata right	:	23	25	27			
+CST	Corticospinal tract	:	7	8				
+CST_L	Corticospinal tract left	:	8					
+CST_R	Corticospinal tract right	:	7					
+EC	External capsule	:	33	34				
+EC_L	External capsule left	:	34					
+EC_R	External capsule right	:	33					
+FX	Fornix (column and body of fornix)	:	6					
+FX_ST_L	Fornix (cres) / Stria terminalis (can not be resolved with current resolution) left	:	40					
+FX_ST_R	Fornix (cres) / Stria terminalis (can not be resolved with current resolution) right	:	39					
+FXST	Fornix (cres) / Stria terminalis	:	39	40				
+GCC	Genu of corpus callosum	:	3					
+IC	Internal Capsule	:	17	18	19	20	21	22
+IC_L	Internal Capsule left	:	18	20	22			
+IC_R	Internal Capsule	:	17	19	21			
+IFO	Inferior Frontal Occipital	:	45	46				
+IFO_L	Inferior Frontal Occipital left	:	46					
+IFO_R	Inferior Frontal Occipital right	:	45					
+PCR	Posterior corona radiata	:	27	28				
+PCR_L	Posterior corona radiata left	:	28					
+PCR_R	Posterior corona radiata right	:	27					
+PLIC	Posterior limb of internal capsule	:	19	20				
+PLIC_L	Posterior limb of internal capsule left	:	20					
+PLIC_R	Posterior limb of internal capsule right	:	19					
+PTR	Posterior thalamic radiation (include optic radiation)	:	29	30				
+PTR_L	Posterior thalamic radiation (include optic radiation) left	:	30					
+PTR_R	Posterior thalamic radiation (include optic radiation) right	:	29					
+RLIC	Retrolenticular part of internal capsule	:	21	22				
+RLIC_L	Retrolenticular part of internal capsule left	:	22					
+RLIC_R	Retrolenticular part of internal capsule right	:	21					
+SCC	Splenium of corpus callosum	:	5					
+SCR	Superior corona radiata	:	25	26				
+SCR_L	Superior corona radiata left	:	26					
+SCR_R	Superior corona radiata right	:	25					
+SFO	Superior fronto-occipital fasciculus (could be a part of anterior internal capsule)	:	43	44					
+SFO_L	Superior fronto-occipital fasciculus (could be a part of anterior internal capsule) left	:	44					
+SFO_R	Superior fronto-occipital fasciculus (could be a part of anterior internal capsule) right	:	43					
+SLF	Superior longitudinal fasciculus	:	41	42			
+SLF_L	Superior longitudinal fasciculus left	:	42					
+SLF_R	Superior longitudinal fasciculus right	:	41					
+SS	Sagittal stratum (include inferior longitidinal fasciculus and inferior fronto-occipital fasciculus)	:	31	32				
+SS_L	Sagittal stratum (include inferior longitidinal fasciculus and inferior fronto-occipital fasciculus) left	:	32					
+SS_R	Sagittal stratum (include inferior longitidinal fasciculus and inferior fronto-occipital fasciculus) right	:	31					
+UNC	Uncinate fasciculus	:	47	48	
+UNC_L	Uncinate fasciculus left	:	48	
+UNC_R	Uncinate fasciculus right	:	47
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
