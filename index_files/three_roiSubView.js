@@ -106,6 +106,14 @@ var three_roiSubView = function (roiView) {
         statsIndex = sidx;
     }
     this.update = function () {
+        var needQuad = false;
+        for (var i = 0; i < this.getRois().length; i++) {
+            if (this.cohortCompData.cohortRoiDataArray[0].stats[0].subjectMeans.length !== 0) {
+                needQuad = true;
+                break;
+            }
+        }
+        this.roiBoxLayout.setQuadNeed(needQuad);
         this.clear();
         this.drawDummy();
         this.updateUI();
@@ -118,7 +126,7 @@ var three_roiSubView = function (roiView) {
         }
         else {
             if (this.cohortCompData.computeStatus() === ROIVIEW_STATUS_COMP) {
-                if (this.cohortCompData.getStatsName(statsIndex) === 'p Value') {
+                if (this.cohortCompData.getStatsName(statsIndex) === 'p value') {
                     this.roiBoxLayout.sortOption = SORT_INC;
                 }
                 else {
@@ -139,14 +147,16 @@ var three_roiSubView = function (roiView) {
                 var object = spatialView.scene.getObjectByName(this.getRois()[i].name);
                 if (object !== null && object !== undefined) {
                     var wholeBox = this.roiBoxLayout.boxAt(i);
-                    var highlightBox = scaleAtPoint(wholeBox, wholeBox.center(), 1.1);
+                    var highlightBox = scaleAtPoint(wholeBox, wholeBox.center(), 1);
                     var material = new THREE.MeshBasicMaterial({
                         color: 0x000000
                     });
                     var pixelWidth = 1.04 / this.viewbox.size().x;
                     var pixelHeight = 1.04 / this.viewbox.size().y;
-                    var hlBoxLineGeo = three_makeQuadBoarderGeometryWidth(highlightBox, 3 * pixelWidth, 3 * pixelHeight);
+                    var hlBoxLineGeo = three_makeQuadBoarderGeometryWidth(highlightBox, 3 * pixelWidth, 3 * pixelHeight, 0.9);
                     var line = new THREE.Mesh(hlBoxLineGeo, material);
+
+                    line.name = 'highlight_' + this.getRois()[i].name;
                     subScene.add(line);
                 }
             }
@@ -194,9 +204,14 @@ var three_roiSubView = function (roiView) {
                 barAxis.valueRange = this.cohortCompData.computeStatsRange(statsIndex);
             }
             barAxis.logarithm = this.cohortCompData.useLogarithm(statsIndex);
-            if (!barAxis.logarithm ) {
-                barAxis.valueRange[0] = 0;
-            }
+            //if (!barAxis.logarithm ) {
+               // barAxis.valueRange[1] = computeChartMax(Math.max(Math.abs(barAxis.valueRange[0]),
+                //    Math.abs(barAxis.valueRange[1])));
+                //barAxis.valueRange[0] = 0;
+            //}
+            barAxis.valueRange = roiView.getLegendManager().computeAxisRange(barAxis.valueRange, statsName);
+            
+
             barAxis.update();
         }
     }
@@ -358,28 +373,37 @@ var three_roiSubView = function (roiView) {
         if (cohortUiPanel !== undefined) cohortUiPanel.clear();
     }
     this.renderHighlight = function () {
-        for (var i = scene.children.length - 1; i >= 0 ; i--) {
-            var obj = scene.children[i];
-            if (obj.name == 'highlight') {
-                destoryThreeJsObjectFromScene(scene, obj);
+        for (var i = subScene.children.length - 1; i >= 0 ; i--) {
+            var obj = subScene.children[i];
+            if (obj.name.substring(0, 9) == 'highlight') {
+                obj.material.color.set(0);
             }
         }
         if (spatialView.selectedObj !== undefined) {
             var hl_name = spatialView.selectedObj.name;
+            /*
             for (var i = 0; i < this.getRois().length; i++) {
                 if (this.getRois()[i].name == hl_name) {
                     var wholeBox = this.roiBoxLayout.boxAt(i);
-                    var highlightBox = scaleAtPoint(wholeBox, wholeBox.center(), 1.1);
+                    var highlightBox = scaleAtPoint(wholeBox, wholeBox.center(), 1);
                     // add line
                     var pixelWidth = 1.04 / this.viewbox.size().x;
                     var pixelHeight = 1.04 / this.viewbox.size().y;
-                    var hlBoxLineGeo = three_makeQuadBoarderGeometryWidth(highlightBox, 3 * pixelWidth, 3 * pixelHeight);
+                    var hlBoxLineGeo = three_makeQuadBoarderGeometryWidth(highlightBox, 5 * pixelWidth, 5 * pixelHeight, 0.99);
                     var material = new THREE.MeshBasicMaterial({
                         color: 0xff0000
                     });
                     var line = new THREE.Mesh(hlBoxLineGeo, material);
                     line.name = 'highlight';
                     scene.add(line);
+                }
+            }
+            */
+            for (var i = subScene.children.length - 1; i >= 0 ; i--) {
+                var obj = subScene.children[i];
+                if (obj.name == 'highlight_' + hl_name) {
+                    obj.material.color.set(0xff0000);
+                    obj.material.needsUpdate = true;
                 }
             }
         }
@@ -419,6 +443,10 @@ var three_roiSubView = function (roiView) {
         if (this.cohortCompData.rois === undefined) return [];
         return this.cohortCompData.rois;
     }
+    this.getRoiColor = function (roi) {
+        var idx = this.getRoiIndex(roi);
+        return this.roiBoxLayout.colorAt(idx);
+    }
     this.getRoiIndex = function (roi) {
         if (this.cohortCompData === undefined) return [];
         if (this.cohortCompData.rois === undefined) return [];
@@ -427,7 +455,7 @@ var three_roiSubView = function (roiView) {
     }
     this.getRoiByPixelCoord = function(coord) {
         if (this.getRois().length == 0) return null;
-        var viewboxAdj = scaleAtPoint(this.viewbox, this.viewbox.center(), 1 / 1.04);
+        var viewboxAdj = this.viewbox;
         var norCoord = normalizedCoord(viewboxAdj, coord);
         for (var i = 0; i < this.getRois().length; i++) {
             var box = this.roiBoxLayout.boxAt(i);
@@ -512,7 +540,7 @@ var three_roiSubView = function (roiView) {
                     drag_dropTarget = subView;
                 }
                 else {
-                    drag_dropTarget = null;
+                    drag_dropTarget = -1;
                 }
             }
             roiView.updateRoiViewLinks();
@@ -526,6 +554,17 @@ var three_roiSubView = function (roiView) {
             sceneDrag_curOffset.y = 0;
             var offset = new THREE.Vector2();
             offset.addVectors(sceneDrag_curOffset, sceneDrag_accOffset);
+            var xRange = this.roiBoxLayout.xRange;
+            if (xRange[1] > 1) {
+                if (offset.x > 0) offset.x = 0;
+                if (offset.x < 1 - xRange[1]) offset.x = 1 - xRange[1];
+            }
+            else {
+                if (offset.x > 1 - xRange[1]) offset.x = 1 - xRange[1];
+                if (offset.x < 0) offset.x = 0;
+            }
+            // for the sake of consistency
+            sceneDrag_accOffset.subVectors(offset, sceneDrag_curOffset);
             this.roiBoxLayout.setOffset(offset);
             this.update();
             roiView.updateRoiViewLinks();
@@ -537,12 +576,51 @@ var three_roiSubView = function (roiView) {
                 var roi = this.getRoiByPixelCoord(coord);
                 if (roi !== null) {
                     tooltip.setPosition(coord);
-                    tooltip.setText(roi.fullname+"\n(Click to show 3D tract)");
+                    var idx = this.cohortCompData.rois.indexOf(roi);
+                    var effectSize = this.cohortCompData.cohortRoiCompStats[idx].effectSize;
+                    var pValue = this.cohortCompData.cohortRoiCompStats[idx].pValue;
+                    tooltip.setText(roi.fullname +
+                        "\nEffect size: " + effectSize +
+                        "\np value: "+pValue +
+                        "\n(Click to show 3D tract)");
                 }
             }
         }
     }
-    
+
+    this.onMouseWheel = function(event) {
+
+        var coord = eventCoord(event);
+        if (!scope.viewbox.containsPoint(coord)) {
+            return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+
+        var delta = 0;
+
+        if (event.wheelDelta) {
+
+            if (event.wheelDelta > 0) {
+                scope.roiBoxLayout.roiBox_width *= 1.1;
+                scope.roiBoxLayout.roiBox_hideWidth *= 1.1;
+            }
+            else {
+                scope.roiBoxLayout.roiBox_width /= 1.1;
+                scope.roiBoxLayout.roiBox_hideWidth /= 1.1;
+            }
+            scope.update();
+            roiView.updateRoiViewLinks();
+        } else if (event.detail) {
+
+            // Firefox
+
+            delta = - event.detail / 3;
+
+        }
+
+    }
+
     this.onMouseDown = function (event) {
         if (event.button !== 0) return;
         var coord = eventCoord(event);
@@ -568,11 +646,14 @@ var three_roiSubView = function (roiView) {
                     // alraedy in spatial view, remove it
                     var object = spatialView.scene.getObjectByName(roi.name);
                     if (object !== null && object !== undefined) {
-                        destoryThreeJsObjectFromScene(spatialView.scene, object);
+                        //destoryThreeJsObjectFromScene(spatialView.scene, object);
+                        spatialView.removeRoi(roi);
                     }
                     // not yet in spatial view, add it
                     else {
-                        spatialView.addRoi(roi);
+                        var idx = scope.getRois().indexOf(roi);
+                        var color = scope.roiBoxLayout.colorAt(idx);
+                        spatialView.addRoi(roi, color);
                     }
                 }
                 else {
@@ -590,10 +671,9 @@ var three_roiSubView = function (roiView) {
             drag_onDrag = false;
             scope.update();
             roiView.highlightSubView(0);
-            // current disable this function by set to -1
-            drag_dropTarget = -1;
             roiView.highlightLocation(-1);
-            if (drag_dropTarget instanceof three_roiSubView) {
+            // current disable this function by adding false
+            if (false && drag_dropTarget instanceof three_roiSubView) {
                 drag_dropTarget.merge(this);
                 drag_dropTarget.update();
                 roiView.removeSubView(this);
@@ -601,6 +681,13 @@ var three_roiSubView = function (roiView) {
             else if (drag_dropTarget >= 0) {
                 roiView.moveSubViewToLocation(this, drag_dropTarget);
                 console.log('Move to ' + drag_dropTarget);
+            }
+            else {
+                var coord = eventCoord(event);
+                if (spatialView.viewbox.containsPoint(coord)) {
+                    inplaceCharts.cohortCompDatasets.push(this.cohortCompData);
+                    roiView.removeSubView(this);
+                }
             }
             roiView.updateRoiViewLinks();
         }
@@ -676,7 +763,7 @@ var three_roiSubView = function (roiView) {
         else if (arg === 'stats_next') {
             if (status !== ROIVIEW_STATUS_COMP) return;
             statsIndex = scope.cohortCompData.suggestNextStatsIndex(statsIndex);
-            scope.update();
+            //scope.update();
             roiView.update();
         }
         else if (arg === 'delete') {

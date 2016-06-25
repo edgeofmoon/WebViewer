@@ -147,6 +147,8 @@
         <script src="./index_files/three_ui_button.js"></script>
         <script src="./index_files/three_ui_textBox.js"></script>
 
+        <!-- Contains code for the image view -->
+        <script src="./index_files/three_imageView.js"></script>
 
         <!-- Contains code for the spatial view -->
         <script src="./index_files/MarchingCubesData.js"></script>
@@ -179,11 +181,20 @@
                 gl_FragColor = gl_FragColor*(ambient+diffusion);
                 gl_FragColor += vec4(specular,specular,specular,0);
                 float viewNormCos = abs(1.0 - abs(dot(transformedNormal,eyeDir)));
+                //gl_FragColor.a = transExp / 30.0;
                 gl_FragColor.a = pow(viewNormCos, transExp);
             }
         </script>
         <script src="./index_files/three_cortexMesh.js"></script>
         <script src="./index_files/three_spatialView.js"></script>
+
+        <!-- Contains code for the statsStacker -->
+        <script src="./index_files/three_roiStatsStacker.js"></script>
+        <script src="./index_files/three_statsRiver.js"></script>
+
+        <!-- Contains code for the bar lens -->
+        <script src="./index_files/three_barLens.js"></script>
+        <script src="./index_files/three_inplaceCharts.js"></script>
 
         <!-- Contains code for the Roi View -->
         <script src="./index_files/three_legend.js"></script>

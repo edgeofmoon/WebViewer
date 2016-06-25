@@ -5,69 +5,21 @@ var three_roiBox = function () {
     this.index = -1;
     this.quad = null;
     this.label = null;
-    this.quad = null;
     this.bar = null;
     this.cohortCompData = null;
     this.color = null;
     this.detail = false;
-
-    // private
-    var labelDiv = null;
 
     // public
     this.renderable = undefined;
 
     // public
     this.init = function () {
-        labelDiv = document.createElement('div');
-        document.body.appendChild(labelDiv);
     }
     this.clear = function () {
-        document.body.removeChild(labelDiv);
         this.renderable = undefined;
     }
     this.update = function () {
-        // update label
-        var gCoord = this.globalPixelCoord(this.quad.min);
-        var gCoord2 = this.globalPixelCoord(this.quad.max);
-        labelDiv.innerHTML = this.label;
-        labelDiv.style.font = "12px Arial";
-        labelDiv.style.top = window.innerHeight - gCoord.y + 'px';
-        labelDiv.style.left = gCoord.x + 'px';
-        labelDiv.style.position = 'absolute';
-        labelDiv.style.zIndex = 1;
-        var colorString = this.cohortCompData.rois[this.index].color.getHexString();
-        colorString = '#'+colorString;
-        labelDiv.style.color = colorString;
-        labelDiv.style.backgroundColor = "transparent";
-        if (this.parent.getViewbox().containsPoint(gCoord)
-            && this.parent.getViewbox().containsPoint(gCoord2)) {
-            labelDiv.style.display = 'block';
-            /*
-            // onclick not working
-            // onmouseover works
-            labelDiv.style.cursor = 'pointer';
-            var scope = this;
-            labelDiv.addEventListener('click', function (event) {
-                console.log(scope.label + ' clicked.');
-                roiView.activeSubView = scope.parent;
-                var fileinput = document.getElementById('fileinput1');
-                fileinput.click();
-            });
-            labelDiv.onclick = function (event) {
-                console.log(scope.label + ' clicked.');
-                roiView.activeSubView = scope.parent;
-                var fileinput = document.getElementById('fileinput1');
-                fileinput.click();
-            };
-            labelDiv.onmouseover = function () {
-                console.log(scope.label + ' hovering.');
-            };
-            */
-        }
-        else {
-            labelDiv.style.display = 'none';
-        }
         // update quad
         var quad_geo = three_makeQuadGeometry(this.quad, 0.5);
         var quad_mat = new THREE.MeshBasicMaterial({
@@ -76,7 +28,7 @@ var three_roiBox = function () {
         this.renderable = new THREE.Mesh(quad_geo, quad_mat);
         var quad_line_geo = three_makeQuadWireGeometry(this.quad, 0.9);
         var quad_line_mat = new THREE.LineBasicMaterial({
-            color: 0x000000
+            color: 0x999999
         });
         var line = new THREE.Line(quad_line_geo, quad_line_mat);
         this.renderable.add(line);
@@ -117,6 +69,15 @@ var three_roiBox = function () {
                 }
             }
         }
+
+        // update label
+        var pixelSize = [1.0 / this.parent.getViewbox().size().x, 1.0 / this.parent.getViewbox().size().y];
+        var textMesh = genTextQuad(this.label, 0, "12px Arial", pixelSize, 'left', 'top', -3.14/4);
+        textMesh.translateX(this.quad.min.x);
+        textMesh.translateY(this.quad.min.y);
+        textMesh.frustumCulled = false;
+        this.renderable.add(textMesh);
+
         // update box
         if (this.bar !== null) {
             this.drawBar();
@@ -139,7 +100,7 @@ var three_roiBox = function () {
 
         var bar_line_geo = three_makeQuadWireGeometry(this.bar, 0.9);
         var bar_line_mat = new THREE.LineBasicMaterial({
-            color: 0x000000
+            color: 0x999999
         });
         var bar_line = new THREE.Line(bar_line_geo, bar_line_mat);
         this.renderable.add(bar_line);

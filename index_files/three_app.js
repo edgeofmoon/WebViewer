@@ -5,6 +5,13 @@ var three_app = function (renderer) {
 
     spatialView = new three_spatialView();
     roiView = new three_roiView();
+    imgView = new three_imageView();
+    //statsStackerView = new three_roiStatsStacker();
+    statsStackerView = new three_statsRiver();
+    statsStackerView.disable();
+    barLenses = [];
+    inplaceCharts = new three_inplaceCharts();
+
     //roiView.addDummySubView();
     globalRois = null;
 
@@ -46,8 +53,17 @@ var three_app = function (renderer) {
 
     this.render = function () {
         renderer.clear();
+        imgView.render();
         spatialView.render();
-        roiView.render();
+        if (spatialView.stackerView) {
+            statsStackerView.render();
+        }
+        else roiView.render();
+
+        //for (var i = 0; i < barLenses.length; i++) {
+        //    barLenses[i].render();
+        //}
+        inplaceCharts.render();
 
         renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
         renderer.setScissor(0, 0, window.innerWidth, window.innerHeight);
@@ -55,14 +71,18 @@ var three_app = function (renderer) {
     }
     this.update = function () {
         spatialView.controls.update();
+
     }
     function resize() {
         renderer.setSize(window.innerWidth, window.innerHeight);
         viewManager.setViewbox(new THREE.Box2(new THREE.Vector2(0, 0),
             new THREE.Vector2(window.innerWidth, window.innerHeight)));
         viewManager.update();
-        spatialView.setViewbox(viewManager.getViewbox(0));
-        roiView.setViewbox(viewManager.getViewbox(1));
+        imgView.setViewbox(viewManager.getViewbox(0));
+        spatialView.setViewbox(viewManager.getViewbox(1));
+        roiView.setViewbox(viewManager.getViewbox(2));
+        statsStackerView.setViewbox(viewManager.getViewbox(2));
+        inplaceCharts.setViewbox(viewManager.getViewbox(1));
         camera = new THREE.OrthographicCamera(0, window.innerWidth, window.innerHeight, 0, -100, 20000);
     };
     this.init = function () {
@@ -92,10 +112,32 @@ var three_app = function (renderer) {
         window.onresize = resize;
         spatialView.init();
         spatialView.setViewport([0, 0, window.innerWidth, window.innerHeight]);
-        spatialView.addCortexMesh("data/lh.pial.obj", "data/rh.pial.obj");
+        //spatialView.addCortexMesh("data/lh.pial.obj", "data/rh.pial.obj");
+        spatialView.addCortexMesh("data/lh.trans.pial.obj", "data/rh.pial.obj");
+        //spatialView.addCortexMesh("data/lh.trans.pial.obj", "data/rh.trans.pial.obj");
+        //spatialView.addCortexMesh("data/lh.pial.obj", "data/rh.pial.obj");
         //spatialView.addCortexMesh("data/lh.orig.obj", "data/rh.orig.obj");
         //spatialView.addMarchingCubesMesh(vol, 0.4);
+        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Maccumb_Oct10_1_manhattan.png", "accumbens", new THREE.Color("rgb(78,238,148)"));
+        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Maccumb_Oct10_1_qq.png", "accumbens", new THREE.Color("rgb(78,238,148)"));
 
+        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mamyg_Oct10_1_manhattan.png", "amygdala", new THREE.Color("rgb(142,229,238)"));
+        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mamyg_Oct10_1_qq.png", "amygdala", new THREE.Color("rgb(142,229,238)"));
+
+        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mcaud_Oct10_1_manhattan.png", "caudate", new THREE.Color("rgb(184,134,11)"));
+        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mcaud_Oct10_1_qq.png", "caudate", new THREE.Color("rgb(184,134,11)"));
+
+        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mhippo_Oct10_1_manhattan.png", "hippocampus", new THREE.Color("rgb(204,204,204)"));
+        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mhippo_Oct10_1_qq.png", "hippocampus", new THREE.Color("rgb(204,204,204)"));
+
+        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mpal_Oct10_1_manhattan.png", "palidum", new THREE.Color("rgb(255,174,185)"));
+        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mpal_Oct10_1_qq.png", "palidum", new THREE.Color("rgb(255,174,185)"));
+
+        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mput_Oct10_1_manhattan.png", "putamen", new THREE.Color("rgb(204,102,255)"));
+        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mput_Oct10_1_qq.png", "putamen", new THREE.Color("rgb(204,102,255)"));
+
+        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mthal_Oct10_1_manhattan.png", "thalamus", new THREE.Color("rgb(255,0,0)"));
+        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mthal_Oct10_1_qq.png", "thalamus", new THREE.Color("rgb(255,0,0)"));
         /*
         // tmp sol
         function pad(num, size) {

@@ -11,12 +11,14 @@ var three_roi = function (sizes) {
     this.maskValues = -1;
     this.boundingbox = undefined;
     this.index = three_roi.nextIndex;
-    this.vox = [];
+    //this.vox = [];
     three_roi.nextIndex++;
     this.color = three_colorTable.categoricalColor(this.index);
 
     // tmp
     this.vol = undefined;
+    this.meshFn = undefined;
+    this.type = 'subcortical';
 }
 
 three_roi.nextIndex = 0;
@@ -73,7 +75,7 @@ three_roi.prototype.buildFromVolume = function (vol, maskValues) {
                     else {
                         this.boundingbox.expandByPoint(vec);
                     }
-                    this.vox.push(p);
+                    //this.vox.push(p);
                 }
             }
         }
@@ -109,14 +111,43 @@ three_roi.prototype.buildFromVolume = function (vol, maskValues) {
     this.maskValues = maskValues;
 }
 
-three_roi.prototype.getGeometry = function () {
+three_roi.prototype.computeGeometry = function (callback) {
     if (this.geometry === undefined) {
-        if (this.boundingbox === undefined) {
-            this.buildFromVolume(this.vol, this.maskValues);
+        if (this.vol) {
+            if (this.boundingbox === undefined) {
+                this.buildFromVolume(this.vol, this.maskValues);
+            }
+            this.geometry = three_marchingCubesRoi(this, 0.5);
+            // clean the data
+            this.data = undefined;
+            callback(this.geometry);
         }
-        this.geometry = three_marchingCubesRoi(this, 0.5);
-        // clean the data
-        this.data = undefined;
+        else if (this.meshFn) {
+            var extension_lfn = this.meshFn.split('.').pop();
+            var loader;
+            if (extension_lfn == 'obj') {
+                loader = new THREE.OBJLoader();
+            }
+            else if (extension_lfn == 'stl') {
+                loader = new THREE.STLLoader();
+            }
+            else {
+                alert('Unknown mesh format!');
+            }
+            var scope = this;
+            loader.load(this.meshFn, function (object) {
+                object.traverse(function (child) {
+                    if (child instanceof THREE.Mesh) {
+                        scope.geometry = child.geometry;
+                        scope.geometry.computeFaceNormals();
+                        scope.geometry.computeVertexNormals();
+                        callback(scope.geometry);
+                    }
+                });
+            });
+        }
     }
-    return this.geometry;
+    else {
+        callback(this.geometry);
+    }
 }

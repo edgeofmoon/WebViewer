@@ -15,10 +15,9 @@ var three_viewManager = function () {
 
     this.update = function () {
         this.subviewboxes.length = 0;
-        var box0 = cutBox(this.viewbox, 0, 0, 0.5);
-        var box1 = cutBox(this.viewbox, 0, 0.5, 1);
-        this.subviewboxes.push(box0);
-        this.subviewboxes.push(box1);
+        this.subviewboxes.push(cutBox(this.viewbox, 0, 0, 0.15));
+        this.subviewboxes.push(cutBox(this.viewbox, 0, 0.15, 0.6));
+        this.subviewboxes.push(cutBox(this.viewbox, 0, 0.6, 1));
     }
 
     this.getViewbox = function (idx) {

@@ -199,14 +199,28 @@ three_dataLoader.loadCSVDatahandler = function (evt) {
         var rois = [];
         var roiCols = [];
         for (var i = 1; i < table[roiNameRow].length; i++) {
-            var roi = getRoiByName(table[roiNameRow][i]);
-            if (!roi) {
-                alert('Cannot Locate Roi: ' + table[roiNameRow][i]);
-            }
-            else {
+            var roiName = table[roiNameRow][i];
+            var roi = getRoiByName(roiName);
+            // sub-cortical roi
+            if (roi){
                 rois.push(roi);
                 roiCols.push(i);
             }
+            // cortical roi
+            else {
+                roiName = roiName.split('_')[0] + '_' + roiName.split('_')[1];
+                var meshName = findCorticalMeshName(roiName);
+                var corticalRoi = new three_roi(-1);
+                corticalRoi.name = roiName;
+                corticalRoi.type = 'cortical';
+                corticalRoi.meshFn = meshName;
+                rois.push(corticalRoi);
+                roiCols.push(i);
+                globalRois.push(corticalRoi);
+            }
+            //else {
+            //    alert('Cannot Locate Roi: ' + table[roiNameRow][i]);
+            //}
         }
 
         // currently no stats is loaded
@@ -283,6 +297,7 @@ three_dataLoader.loadCSVDatahandler = function (evt) {
         cohortCompData.cohortRoiDataArray.push(ctrlCohortRoiData);
         cohortCompData.cohortRoiDataArray.push(disdCohortRoiData);
         cohortCompData.cohortRoiCompStats = cohortRoiCompStats;
+        cohortCompData.name = leafname;
         cohortCompData.update();
 
         var newSubView = roiView.addSubView(cohortCompData.rois);
@@ -290,7 +305,29 @@ three_dataLoader.loadCSVDatahandler = function (evt) {
         newSubView.init();
         newSubView.setStatsIndex(1);
         newSubView.name = leafname;
-        newSubView.update();
+        //newSubView.update();
+        roiView.getLegendManager().cohortCompDatasets.push(cohortCompData);
+        roiView.update();
+
+        if (spatialView.inplaceCharts) {
+            if (rois[0].type == 'cortical') {
+                var barLens = new three_barLens();
+                barLens.cohortCompData = cohortCompData;
+                barLens.update();
+                barLenses.push(barLens);
+            }
+        }
+        // update stacker
+        statsStackerView.viewbox = roiView.viewbox;
+        statsStackerView.cohortCompDataSets.length = 0;
+        for (var i = 0; i < roiView.subViews.length; i++) {
+            var cohortCompData = roiView.subViews[i].cohortCompData;
+            statsStackerView.cohortCompDataSets.push(cohortCompData);
+        }
+        statsStackerView.update();
+
+        // update in place chart
+        //inplaceCharts.updateCompDatesets();
     }
 
     reader.readAsText(file);

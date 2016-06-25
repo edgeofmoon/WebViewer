@@ -218,7 +218,13 @@ var three_roiView = function () {
             scope.subViews[i].onMouseMove(event);
         }
     }
-    
+
+    function onMouseWheel(event) {
+        for (var i = 0; i < scope.subViews.length; i++) {
+            scope.subViews[i].onMouseWheel(event);
+        }
+    }
+
     function onMouseDown(event) {
         var coord = eventCoord(event);
         for (var i = 0; i < scope.subViews.length; i++) {
@@ -235,7 +241,18 @@ var three_roiView = function () {
         }
     }
 
-    document.addEventListener('mousemove', onMouseMove, false);
-    document.addEventListener('mousedown', onMouseDown, false);
-    document.addEventListener('mouseup', onMouseUp, false);
+    this.disable = function () {
+        document.removeEventListener('mousemove', onMouseMove, false);
+        document.removeEventListener('mousedown', onMouseDown, false);
+        document.removeEventListener('mouseup', onMouseUp, false);
+        document.removeEventListener('mousewheel', onMouseWheel, false);
+    }
+
+    this.enable = function () {
+        document.addEventListener('mousemove', onMouseMove, false);
+        document.addEventListener('mousedown', onMouseDown, false);
+        document.addEventListener('mouseup', onMouseUp, false);
+        document.addEventListener('mousewheel', onMouseWheel, false);
+    };
+    this.enable();
 }

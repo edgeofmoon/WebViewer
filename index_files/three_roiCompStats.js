@@ -72,10 +72,10 @@ three_roiCompStats.prototype.getStats = function (idx) {
 
 three_roiCompStats.prototype.getStatsName = function (idx) {
     if (idx === 0) {
-        return 't score';
+        return 'T score';
     }
     else if (idx === 1) {
-        return 'effect size';
+        return 'Effect size';
     }
     else {
         return 'p value';

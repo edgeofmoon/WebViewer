@@ -4,9 +4,7 @@
 var three_legendManager = function () {
     this.legendRanges = new Map();
 
-    // private
-    this.textDivs = [];
-    var nextTextDivIndex = 0;
+    this.cohortCompDatasets = [];
 
     var scene = new THREE.Scene();
     var camera;
@@ -20,25 +18,13 @@ var three_legendManager = function () {
     }
 
     this.addTextDiv = function (text, coord) {
-        if (nextTextDivIndex >= this.textDivs.length) {
-            var textDiv = document.createElement('div');
-            document.body.appendChild(textDiv);
-            this.textDivs.push(textDiv);
-        }
-        var textDiv = this.textDivs[nextTextDivIndex++];
-        var gCoord = this.globalPixelCoord(coord);
-        var valueString = text;
-        var textLength = getTextSize(text, '12pt arial').x;
-        gCoord.x -= textLength / 2;
-        textDiv.innerHTML = text;
-        textDiv.style.font = "12px Arial";
-        textDiv.style.color = "#000";
-        textDiv.style.top = window.innerHeight - gCoord.y + 'px';
-        textDiv.style.left = gCoord.x + 'px';
-        textDiv.style.position = 'absolute';
-        textDiv.style.zIndex = 1;
-        textDiv.style.backgroundColor = "transparent";
-        textDiv.style.display = "block";
+
+        var pixelSize = [1.0 / this.viewbox.size().x, 1.0 / this.viewbox.size().y];
+        var textMesh = genTextQuad(text, 0, "12px Arial", pixelSize, 'left', 'top');
+        textMesh.translateX(coord.x);
+        textMesh.translateY(coord.y);
+        textMesh.frustumCulled = false;
+        scene.add(textMesh);
 
     }
     this.addLegend = function (statsName, box, mapType) {
@@ -123,6 +109,8 @@ var three_legendManager = function () {
         // add negative value label
         var value = dataRange[0];
         var valueString = value.toExponential();
+        var vSpt = valueString.split('e');
+        valueString = vSpt[0].substring(0, Math.min(vSpt[0].length, 3)) + 'e' + vSpt[1];
         //valueString = valueString.substring(0, Math.min(valueString.length, 5));
         var xCoord = box.min.x;
         var coord = new THREE.Vector2(xCoord, box.min.y);
@@ -131,6 +119,8 @@ var three_legendManager = function () {
         // add positive value label
         var value = dataRange[1];
         var valueString = value.toExponential();
+        var vSpt = valueString.split('e');
+        valueString = vSpt[0].substring(0, Math.min(vSpt[0].length, 3)) + 'e' + vSpt[1];
         //valueString = valueString.substring(0, Math.min(valueString.length, 4));
         var xCoord = box.max.x;
         var coord = new THREE.Vector2(xCoord, box.min.y);
@@ -162,7 +152,8 @@ var three_legendManager = function () {
         var top = box.max.y;
         var xOffset = box.min.x;
         var remainWidth = box.size().x;
-        if (dataRange[0] * dataRange[1] < 0) remainWidth /= 2;
+        var ratio = Math.abs(dataRange[0] / dataRange[1]);
+        if (dataRange[0] * dataRange[1] < 0) remainWidth = box.size().x*ratio/(1+ratio);
         if (dataRange[0] < 0) {
             // diverging map, negative color
             for (var i = 0; i <= numSteps; i++) {
@@ -187,9 +178,10 @@ var three_legendManager = function () {
                 }
                 lastColor = color;
             }
-            xOffset = box.center().x;
+            xOffset += remainWidth;
         }
         var vOffset = geometry.vertices.length;
+        if (dataRange[0] * dataRange[1] < 0) remainWidth = box.size().x * 1 / (1 + ratio);
         if (dataRange[1] > 0) {
             for (var i = 0; i <= numSteps; i++) {
                 //var value = stepValue * i + this.minValue;
@@ -239,7 +231,7 @@ var three_legendManager = function () {
         if (dataRange[0] * dataRange[1] < 0) {
             // add 0 value label
             var zeroString = '0';
-            var zeroCoord = new THREE.Vector2(box.center().x, box.min.y);
+            var zeroCoord = new THREE.Vector2(box.min.x+box.size().x * ratio / (1 + ratio), box.min.y);
             this.addTextDiv(zeroString, zeroCoord);
         }
         // add title
@@ -247,13 +239,43 @@ var three_legendManager = function () {
         var titleCoord = new THREE.Vector2(box.center().x, box.max.y + 15 / pixelPerUnit);
         this.addTextDiv(statsName, titleCoord);
     }
+    this.computeAxisRange = function (valueRange, statsName) {
+        var mapType = three_legendManager.getStatsMapType(statsName);
+        if (mapType == 'linear') {
+            if (spatialView.globalNormalization) {
+                var dataRange = this.legendRanges.get(statsName);
+                return [0, dataRange[1]];
+            }
+            else {
+                var rst = [0, 0];
+                rst[1] = computeChartMax(Math.max(Math.abs(valueRange[0]),
+                    Math.abs(valueRange[1])));
+                return rst;
+            }
+        }
+        else if (mapType == 'log') {
+            if (spatialView.globalNormalization) {
+                var dataRange = this.legendRanges.get(statsName);
+                return dataRange;
+            }
+            else {
+                var rst = [1, 1];
+                rst[0] = computeChartMax(Math.min(Math.abs(valueRange[0]),
+                    Math.abs(valueRange[1])));
+                return rst;
+            }
 
+        }
+    }
     this.update = function () {
         // update ranges
         this.legendRanges.clear();
-        for (var i = 0; i < roiView.subViews.length; i++) {
-            var cohortCompData = roiView.subViews[i].cohortCompData;
-            var statsIndex = roiView.subViews[i].getStatsIndex();
+        for (var i = 0; i < this.cohortCompDatasets.length; i++) {
+            var cohortCompData = this.cohortCompDatasets[i];
+            var statsIndex = 1;
+            if(roiView.subViews.length>i){
+                statsIndex = roiView.subViews[i].getStatsIndex();
+            }
             var status = cohortCompData.computeStatus();
             if (status === ROIVIEW_STATUS_COMP) {
                 var statsName = cohortCompData.getStatsName(statsIndex);
@@ -266,7 +288,7 @@ var three_legendManager = function () {
                 }
                 else {
                     var range = cohortCompData.computeStatsRange(statsIndex);
-                    if (statsName == "effect size") {
+                    if (statsName == "Effect size") {
                         if (range[0] < 0 && range[1] < 0) {
                             range[1] = 0;
                         }
@@ -278,15 +300,19 @@ var three_legendManager = function () {
                 }
             }
         }
+        var scope = this;
+        /*
+        this.legendRanges.forEach(function (value, key, map) {
+            if (value[0] < 0 && value[1] > 0) {
+                var absRange = Math.max(Math.abs(value[0]), Math.abs(value[1]));
+                scope.legendRanges.set(key, [-absRange, absRange]);
+            }
+        });
+        */
 
         // update scene & camera
         camera = new THREE.OrthographicCamera(
             0, 1, 1, 0, -100, 100);
-
-        // first hide all text divs
-        for (var i = 0; i < this.textDivs.length; i++) {
-            this.textDivs[i].style.display = 'none';
-        }
 
         // add all legends
         //return;
@@ -294,7 +320,6 @@ var three_legendManager = function () {
         var numLegends = this.legendRanges.size;
         var allBox = new THREE.Box2(new THREE.Vector2(0.05, 0.2), new THREE.Vector2(0.95, 0.8));
         var itrIdx = 0;
-        var scope = this;
         nextTextDivIndex = 0;
         this.legendRanges.forEach(function(value, key, map){
             var thisBox = cutBox(allBox, 0, itrIdx / numLegends, (++itrIdx) / numLegends);
@@ -363,7 +388,9 @@ three_legendManager.getValueHeight = function (value, range, mapType) {
 three_legendManager.nomalizeValueInRange = function (value, range, mapType) {
     mapType = (mapType ? mapType : 'linear');
     if (mapType == 'linear') {
-        return Math.abs(value) / Math.max(Math.abs(range[0]), Math.abs(range[1]));
+        //return Math.abs(value) / Math.max(Math.abs(range[0]), Math.abs(range[1]));
+        var chartMax = computeChartMax(Math.max(Math.abs(range[0]), Math.abs(range[1])));
+        return Math.abs(value) / chartMax;
     }
     else if (mapType == 'log') {
         var logRange = [

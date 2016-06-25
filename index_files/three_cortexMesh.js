@@ -8,7 +8,7 @@ var coretexMesh_uniforms = {
 };
 var coretexMesh_vertexShader = document.getElementById('vertexShader').text;
 var coretexMesh_fragmentShader = document.getElementById('fragmentShader').text;
-var coretexMesh_material = new THREE.ShaderMaterial(
+coretexMesh_material = new THREE.ShaderMaterial(
     {
         uniforms: coretexMesh_uniforms,
         vertexShader: coretexMesh_vertexShader,

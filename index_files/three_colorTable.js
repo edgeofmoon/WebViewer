@@ -277,11 +277,12 @@ var three_colorTable = function () {
 three_colorTable.divergingColor = function(diff, minDiff, maxDiff) {
     var index;
     var halfRange = 256 / 2;
+    var absMaxDiff = Math.max(Math.abs(minDiff), Math.abs(maxDiff));
     if (diff < 0) {
-        index = Math.floor(halfRange - diff / minDiff * halfRange);
+        index = Math.floor(halfRange + diff / absMaxDiff * halfRange);
     }
     else {
-        index = Math.floor(diff / maxDiff * halfRange + halfRange);
+        index = Math.floor(diff / absMaxDiff * halfRange + halfRange);
     }
     var color = new THREE.Color();
     color.r = DivergingColorMap[index][0];

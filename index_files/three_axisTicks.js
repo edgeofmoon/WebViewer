@@ -49,6 +49,7 @@ three_axisTicks.prototype.clear = function () {
 }
 three_axisTicks.prototype.update = function () {
     this.clearScene();
+    if (this.high == this.low) return;
     var mainLineMaterial = new THREE.LineBasicMaterial({
         color: 0x777777,
 
@@ -74,7 +75,7 @@ three_axisTicks.prototype.update = function () {
         var lastVisibleHeight = 0;
         for (var i = 0; i <= nStep; i++) {
             // add main lines
-            var value = Math.pow(10, i);
+            var value = Math.pow(10, -i);
             var height = i / nStep * heightRange + base;
             var lineStart = new THREE.Vector3(0, height, -1);
             var lineEnd = new THREE.Vector3(1, height, -1);
@@ -118,6 +119,7 @@ three_axisTicks.prototype.update = function () {
 
 
         for (var i = 0; i <= nStep; i++) {
+            if (i % 5 !== 0 && magnitude <= -2) continue;
             var height = this.low + subStepHeight * i;
             var material = subLineMaterial;
             // line geometry
@@ -130,7 +132,7 @@ three_axisTicks.prototype.update = function () {
 
                 // add text using mesh
                 var pixelSize = [1.04 / this.viewbox.size().x, 1.04 / this.viewbox.size().y];
-                var textMesh = genTextQuad((subStep * i + this.valueRange[0]).toString(),
+                var textMesh = genTextQuad((subStep * i + this.valueRange[0]).toString().substring(0,3),
                     0, "10px Arial", pixelSize, 'right');
                 textMesh.translateX(lineStart.x);
                 textMesh.translateY(lineStart.y);

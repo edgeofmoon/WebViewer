@@ -10,12 +10,15 @@ var three_spatialView = function () {
     this.light0 = new THREE.SpotLight(0xffffff);
     this.light1 = new THREE.SpotLight(0xffffff);
     this.cortexMeshes = [[], []];
+    this.roiMesh = new Map();
+    this.roiLoading = new Map();
+
     // axis
     var axisLength = 100;
     this.axisHelper = new THREE.AxisHelper(axisLength);
 
     this.labelDivs = [];
-    this.labelTexts = ['right', 'anterior', 'superior'];
+    this.labelTexts = ['Right', 'Anterior', 'Superior'];
     this.labelColor = ['#ff0000', '#00ff00', '#0000ff'];
     this.labelCoords = [new THREE.Vector3(axisLength, 0, 0),
         new THREE.Vector3(0, axisLength, 0),
@@ -28,38 +31,62 @@ var three_spatialView = function () {
     // parameters
     this.showLeftMesh = true;
     this.showRightMesh = true;
+    this.showAxis = true;
+    this.showBoundary = false;
     this.tranparency = 0.2;
-    this.showTracts = true;
+    this.showTracts = false;
     this.tractThreshold = 0.5;
-    this.barWidth = 0.05;
+    this.globalNormalization = true;
+    this.stackerView = false;
+    this.inplaceCharts = true;
     // UI
     var gui = new dat.GUI({ autoPlace: false });
     gui.close();
     gui.domElement.style.position = 'absolute';
     gui.domElement.style.top = '0px';
-    gui.domElement.style.left = '0px';
+    var guiLeft = window.innerWidth * 0.15;
+    gui.domElement.style.left = guiLeft+'px';
     document.body.appendChild(gui.domElement);
     var scope = this;
     function updateRender() { scope.updateRendering(); };
+    function updateNormalization() {
+        roiView.update();
+    };
+    function updateStacker() {
+        if (scope.stackerView) {
+            statsStackerView.viewbox = roiView.viewbox;
+            statsStackerView.cohortCompDataSets.length = 0;
+            for (var i = 0; i < roiView.subViews.length; i++) {
+                var cohortCompData = roiView.subViews[i].cohortCompData;
+                statsStackerView.cohortCompDataSets.push(cohortCompData);
+            }
+            statsStackerView.update();
+            statsStackerView.enable();
+            roiView.disable();
+        }
+        else {
+            statsStackerView.disable();
+            roiView.enable();
+        }
+    }
     this.updateData = function() {
         var fileinput = document.getElementById('fileinput2');
         fileinput.click();
     };
-    function updateBarWidth(){
-        three_roiBoxLayout_barWidth = scope.barWidth;
-        roiView.update();
-    };
     var f1 = gui.addFolder("Cortex Mesh");
     f1.add(this, 'showLeftMesh').name('Left hemisphere').onFinishChange(updateRender);
     f1.add(this, 'showRightMesh').name('Right hemisphere').onFinishChange(updateRender);
+    f1.add(this, 'showAxis').name('Show axis').onFinishChange(toggleAxis);
+    f1.add(this, 'showBoundary').name('Show boundary');
     f1.add(this, 'tranparency').min(0).max(1.0).name('Transparency').onChange(updateRender);
+    f1.add(this, 'inplaceCharts').name('In place charts');
     var f2 = gui.addFolder("Tractography Mesh");
     f2.add(this, 'showTracts').name('Display with ROI');
     f2.add(this, 'tractThreshold').min(0).max(1.0).name('Density threshold').onChange(updateRender);
-    var f3 = gui.addFolder("Roi View");
-    f3.add(this, 'barWidth').min(0.02).max(0.2).name('Bar Width').onChange(updateBarWidth);
-    var f4 = gui.addFolder("Data");
-    f4.add(this, 'updateData').name('Load Data');
+    f2.add(this, 'globalNormalization').name('Global normalization').onChange(updateNormalization);
+    f2.add(this, 'stackerView').name('Stacker view').onChange(updateStacker);
+    var f3 = gui.addFolder("Data");
+    f3.add(this, 'updateData').name('Load Data');
 
     
 	 $("div.dg.main")
@@ -84,7 +111,14 @@ var three_spatialView = function () {
     }
 
     this.updateUI();
-
+    function toggleAxis() {
+        if (scope.showAxis) {
+            scope.scene.add(scope.axisHelper);
+        }
+        else{
+            scope.scene.remove(scope.axisHelper);
+        }
+    }
     this.updateLabels = function () {
         for (var i = this.labelDivs.length; i < 3; i++) {
             var label = document.createElement('div');
@@ -108,7 +142,11 @@ var three_spatialView = function () {
                 this.labelDivs[i].style.display = 'none';
             }
         }
-        
+        if (!this.showAxis) {
+            for (var i = 0; i < 3; i++) {
+                this.labelDivs[i].style.display = 'none';
+            }
+        }
     }
     // init 
     this.init = function () {
@@ -137,6 +175,8 @@ var three_spatialView = function () {
         this.controls.responseBox = this.viewbox;
         this.camera.aspect = viewbox.size().x / viewbox.size().y;
         this.camera.updateProjectionMatrix();
+        var guiLeft = window.innerWidth * 0.15;
+        gui.domElement.style.left = guiLeft + 'px';
     }
 
     this.setViewport = function (viewport) {
@@ -165,28 +205,146 @@ var three_spatialView = function () {
     this.updateRenderingOrder = function () {
         // move cortex mesh to the end
         var cortexMeshNames = ['lh', 'rh'];
+        var objs = [0,0];
         for (var i = this.scene.children.length - 1; i >= 0 ; i--) {
             var obj = this.scene.children[i];
             for (var j = 0; j < cortexMeshNames.length; j++) {
                 if (obj.name == cortexMeshNames[j]) {
                     this.scene.remove(obj);
-                    this.scene.add(obj);
+                    objs[j] = obj;
+                }
+            }
+            if (obj.roi) {
+                if (obj.roi.type == 'cortical') {
+                    obj.material.opacity = this.tranparency;
                 }
             }
         }
+        for (var j = 0; j < cortexMeshNames.length; j++) {
+            if (objs[i] !== 0) {
+                this.scene.add(objs[0]);
+                this.scene.add(objs[1]);
+            }
+        }
     }
-    this.addRoi = function(roi){
-        var geometry = roi.getGeometry();
-        var colorMaterial = new THREE.MeshLambertMaterial;
-        renderer.sortObjects = false;
-        colorMaterial.color = roi.color.clone();
-        var mesh = new THREE.Mesh(geometry, colorMaterial);
-        mesh.rotateOnAxis(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
-        mesh.name = roi.name;
-        mesh.roi = roi;
-        //mesh.castShadow = true;
-        //mesh.receiveShadow = true;
-        this.scene.add(mesh);
+    this.getRoiMesh = function(roi){
+        return this.roiMesh.get(roi);
+    }
+    this.isRoiSelected = function (roi) {
+        if (this.selectedObj == undefined) return false;
+        return this.selectedObj === roi;
+    }
+    this.isRoiLoading = function (roi) {
+        return this.roiLoading.has(roi);
+    }
+    this.addMeshByFileNames = function (fns, meshName, color) {
+        var loaders = [];
+        var renderable;
+        var numToLoader = fns.length;
+        for (var i = 0; i < fns.length; i++) {
+            var fn = fns[i];
+            var loader;
+            var extension_lfn = fn.split('.').pop();
+            if (extension_lfn == 'obj') {
+                loader = new THREE.OBJLoader();
+            }
+            else if (extension_lfn == 'stl') {
+                loader = new THREE.STLLoader();
+            }
+            else {
+                alert('Unknown mesh format!');
+                numToLoader--;
+                continue;
+            }
+            loaders.push(loader);
+            var scope = this;
+            loader.load(fn, function (object) {
+                object.traverse(function (child) {
+                    if (child instanceof THREE.Mesh) {
+                        var unpackedGeometry = new THREE.Geometry().fromBufferGeometry(child.geometry);
+                        child.geometry.dispose();
+                        child.geometry = unpackedGeometry;
+                        child.geometry.computeFaceNormals();
+                        child.geometry.computeVertexNormals();
+                        child.geometry.computeBoundingBox();
+                        child.material.effectColor = color.clone();
+                        child.material.color = color.clone();
+                        if (renderable === undefined) {
+                            renderable = child;
+                        }
+                        else {
+                            //renderable.add(child);
+                            renderable.geometry.merge(child.geometry, child.matrix);
+                        }
+                        //callback(child);
+                        numToLoader--;
+                        if (numToLoader == 0) {
+                            renderable.name = meshName;
+                            renderable.roi = 0;
+                            scope.scene.add(renderable);
+                        }
+                    }
+                });
+            });
+        }
+    }
+    this.removeRoi = function (roi) {
+        if (this.roiMesh.has(roi)) {
+            var object = this.roiMesh.get(roi);
+            this.roiMesh.delete(roi);
+            destoryThreeJsObjectFromScene(spatialView.scene, object);
+        }
+    }
+    this.addRoi = function (roi, color) {
+        if (this.roiMesh.get(roi)) return;
+        if (this.isRoiLoading(roi)) return;
+        scope = this;
+        this.roiLoading.set(roi, 1);
+        roi.computeGeometry(function callBack(geometry) {
+            //var geometry = roi.getGeometry();
+            if (geometry.boundingBox  == undefined) {
+                geometry.computeBoundingBox();
+            }
+            var colorMaterial = new THREE.MeshLambertMaterial;
+            colorMaterial.side = THREE.DoubleSide;
+            renderer.sortObjects = false;
+            if (color == undefined) {
+                colorMaterial.color = roi.color.clone();
+            }
+            else {
+                colorMaterial.color = color.clone();
+                colorMaterial.effectColor = color.clone();
+            }
+            var mesh = new THREE.Mesh(geometry, colorMaterial);
+            if (roi.type == 'cortical') {
+                colorMaterial.transparent = true;
+                colorMaterial.opacity = this.tranparency;
+                if (geometry instanceof THREE.BufferGeometry) {
+                    var unpackedGeometry = new THREE.Geometry().fromBufferGeometry(geometry);
+                    unpackedGeometry.mergeVertices();
+                    mesh.geometry = unpackedGeometry;
+                }
+                if (scope.showBoundary) {
+                    var lineSegmentGeometry = makeBoundaryLineSegmentsGeometry(mesh.geometry.vertices, mesh.geometry.faces);
+                    var lineMaterial = new THREE.LineBasicMaterial({
+                        color: 0xff0000
+                    });
+                    lineMaterial.color = roi.color.clone();
+                    var lineSegments = new THREE.LineSegments(lineSegmentGeometry, lineMaterial);
+                    mesh.add(lineSegments);
+                }
+            }
+            if(roi.type == 'subcortical'){
+                mesh.rotateOnAxis(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
+            }
+            mesh.name = roi.name;
+            mesh.roi = roi;
+            scope.scene.add(mesh);
+            scope.roiLoading.delete(roi);
+            scope.updateRenderingOrder();
+            scope.roiMesh.set(roi, mesh);
+        });
+
         if (this.showTracts) {
             this.addRoiTractVol(roi);
         }
@@ -236,8 +394,10 @@ var three_spatialView = function () {
             var obj = this.scene.children[i];
             if (obj.roi !== undefined) {
                 //obj.material.color.set(0xff00ff);
-                obj.material.color.set(obj.roi.color.clone());
-
+                //obj.material.color.set(obj.roi.color.clone());
+                if (obj.material.effectColor) {
+                    obj.material.color.set(obj.material.effectColor.clone());
+                }
             }
         }
         // calculate objects intersecting the picking ray
@@ -249,7 +409,6 @@ var three_spatialView = function () {
                 this.selectedObj = intersects[i].object;
                 break;
             }
-
         }
     }
     this.updateRendering = function () {
@@ -303,7 +462,7 @@ var three_spatialView = function () {
         this.updateLabels();
         renderer.render(this.scene, this.camera);
         // render UI
-        renderer.clearDepth();
+        //renderer.clearDepth();
         //uiPanel.render();
     }
 
@@ -313,8 +472,8 @@ var three_spatialView = function () {
         // calculate mouse position in normalized device coordinates
         // (-1 to +1) for both components
         if (scope.eventInBox(event)) {
-            scope.mouse.x = (event.clientX / scope.viewbox.size().x) * 2 - 1;
-            scope.mouse.y = -(event.clientY / scope.viewbox.size().y) * 2 + 1;
+            scope.mouse.x = ((event.clientX - scope.viewbox.min.x) / scope.viewbox.size().x) * 2 - 1;
+            scope.mouse.y = -((event.clientY - scope.viewbox.min.y) / scope.viewbox.size().y) * 2 + 1;
             scope.mousei.x = event.clientX;
             scope.mousei.y = window.innerHeight-event.clientY;
             scope.updatePicking();
@@ -333,7 +492,14 @@ var three_spatialView = function () {
         //    return;
         //}
         if (scope.selectedObj !== undefined) {
-            scope.scene.remove(scope.selectedObj);
+            //scope.scene.remove(scope.selectedObj);
+            if (scope.selectedObj.roi) {
+                scope.removeRoi(scope.selectedObj.roi);
+            }
+            else {
+                // for compatability
+                scope.scene.remove(scope.selectedObj);
+            }
         }
         roiView.update();
     }

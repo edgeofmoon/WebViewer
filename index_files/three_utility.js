@@ -43,6 +43,13 @@ function absoluteCoord(box, normalizedCoord) {
     return ret;
 }
 
+function computeChartMax(valueMax) {
+    var magnitude = Math.floor(Math.log10(valueMax));
+    var unit = Math.pow(10, magnitude);
+    var coef = Math.ceil(valueMax / unit);
+    return coef * unit;
+}
+
 function scaleAtPoint(box, point, scale) {
     var newMin = new THREE.Vector2();
     newMin.subVectors(box.min, point);
@@ -204,10 +211,59 @@ function getProjection(worldCoord, worldMatrix, camera, viewbox) {
     return pixel;
 }
 
+function findMeshBoundary(vertices, faces) {
+    var count = new Map();
+    var maxIdx = 0;
+    for (var i = 0; i < faces.length; i++) {
+        var t0 = faces[i].a;
+        var t1 = faces[i].b;
+        var t2 = faces[i].c;
+        var idxs = [t0, t1, t2];
+        idxs.sort();
+        var edges = [[idxs[0], idxs[1]], [idxs[1], idxs[2]], [idxs[0], idxs[2]]];
+        for (var j = 0; j < 3; j++) {
+            var edgeString = edges[j][0] + '_' + edges[j][1];
+            if (!count.has(edgeString)) {
+                count[edgeString] = 1;
+                count.set(edgeString, 1);
+            }
+            else {
+                count.set(edgeString, 2);
+            }
+        }
+    }
+    var rst = [];
+    count.forEach(function (value, key, map) {
+        if (value == 1) {
+            var sptStr = key.split('_');
+            var edge = [Number(sptStr[0]), Number(sptStr[1])];
+            rst.push(edge);
+        }
+    });
+    return rst;
+}
+
+function makeBoundaryLineSegmentsGeometry(vertices, faces) {
+    var edges = findMeshBoundary(vertices, faces);
+    var geometry = new THREE.Geometry();
+    for (var i = 0; i < edges.length; i++) {
+        geometry.vertices.push(vertices[edges[i][0]].clone());
+        geometry.vertices.push(vertices[edges[i][1]].clone());
+    }
+    return geometry;
+}
+
 function clearScene(scene) {
     for (var i = scene.children.length - 1; i >= 0 ; i--) {
         var obj = scene.children[i];
         destoryThreeJsObjectFromScene(scene, obj);
+    }
+}
+
+function emptyScene(scene) {
+    for (var i = scene.children.length - 1; i >= 0 ; i--) {
+        var obj = scene.children[i];
+        scene.remove(obj);
     }
 }
 
@@ -515,32 +571,17 @@ function loadPreviewCVSData(fn) {
         var response = event.target.response;
         var table = CSVToArray(response);
         var cohortCompData = ArrayToCohortCompData(table);
+        cohortCompData.name = leafname;
         var newSubView = roiView.addSubView(cohortCompData.rois);
         newSubView.cohortCompData = cohortCompData;
         newSubView.init();
         newSubView.setStatsIndex(1);
         newSubView.name = leafname;
-        newSubView.update();
+        roiView.getLegendManager().cohortCompDatasets.push(cohortCompData);
+        //newSubView.update();
         roiView.update();
-        /*
-        // make a 'copy' of the cohortCompData
-        var cohortCompData2 = new three_cohortCompData();
-        cohortCompData2.rois = cohortCompData.rois;
-        cohortCompData2.cohortRoiDataArray = cohortCompData.cohortRoiDataArray.slice(0);
-        // this comp stats should be cloned
-        for (var i = 0; i < cohortCompData.cohortRoiCompStats.length; i++){
-            cohortCompData2.cohortRoiCompStats.push(cohortCompData.cohortRoiCompStats[i].clone());
-        }
-        cohortCompData2.cohortRoiCompStatRange = cohortCompData.cohortRoiCompStatRange;
-        cohortCompData2.sortOrder = cohortCompData.sortOrder.slice(0);
-        cohortCompData2.sortOption = cohortCompData.sortOption;
+        //inplaceCharts.updateCompDatesets();
 
-        var newSubView2 = roiView.addSubView(cohortCompData2.rois);
-        newSubView2.cohortCompData = cohortCompData2;
-        newSubView2.init();
-        newSubView2.setStatsIndex(2);
-        newSubView2.update();
-        */
     }, false);
 
     /*
@@ -567,6 +608,16 @@ function getNextCharIndex(line, charList) {
         }
     }
     return line.length;
+}
+
+function findCorticalMeshName(roiName) {
+    roiName.split('\\').pop().split('/').pop().split('.');
+    var sptName = roiName.split('_');
+    var side = sptName[0];
+    var cName = sptName[1];
+    var meshName = 'data/pial_DK_trans/' + (side == 'L' ? 'lh' : 'rh') + '.pial.DK.' + cName + '_trans.obj';
+    return meshName;
+
 }
 
 function loadRoiSpec(volfn, specfn, callback) {
@@ -745,13 +796,14 @@ function genTextTexture(text, size, boarder, font) {
     return texture;
 }
 
-function genTextQuad(text, boarder, font, pixelSize, alignHorizontal, alignVertical) {
+function genTextQuad(text, boarder, font, pixelSize, alignHorizontal, alignVertical, rotation) {
     // if given, use cached canvas for better performance
     // else, create new canvas
     //var canvas = genTextTexture.canvas || (genTextTexture.canvas = document.createElement("canvas"));
     var canvas = document.createElement("canvas");
     var context = canvas.getContext("2d");
     var textHeight = 20;
+    rotation = rotation ? rotation : 0;
     if (font) {
         context.font = font;
         //var matches = font.match(/(\d+)sl(\d+)/);
@@ -781,6 +833,7 @@ function genTextQuad(text, boarder, font, pixelSize, alignHorizontal, alignVerti
     context.textBaseline = "top";
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = "rgba(0,0,0,1)"; // text color
+    context.font = font ? font : "Bold 20px Arial";
     //context.fillRect(0, 0, canvas.width, canvas.height);
     for (var i = 0; i < lines.length; i++) {
         context.fillText(lines[i], boarder, i * textHeight + boarder);
@@ -791,9 +844,37 @@ function genTextQuad(text, boarder, font, pixelSize, alignHorizontal, alignVerti
     var tex_u = size[0]/tw;
     var tex_v = size[1] / th;
     pixelSize = pixelSize ? pixelSize : [1, 1];
-    size[0] *= pixelSize[0];
-    size[1] *= pixelSize[1];
-    var quad_geo = new THREE.PlaneGeometry(size[0], size[1]);
+    //size[0] *= pixelSize[0];
+    //size[1] *= pixelSize[1];
+
+    var vScale = new THREE.Vector3(pixelSize[0], pixelSize[1], 1);
+    //var v0 = new THREE.Vector3(-size[0] / 2, -size[1] / 2, 0).multiply(vScale);
+    var v0 = new THREE.Vector3(0, 0, 0);
+    var v1 = new THREE.Vector3(v0.x + size[0] * Math.cos(rotation), v0.y + size[0] * Math.sin(rotation));
+    var v2 = new THREE.Vector3(v1.x - size[1] * Math.sin(rotation), v1.y + size[1] * Math.cos(rotation));
+    var v3 = new THREE.Vector3(v0.x - size[1] * Math.sin(rotation), v0.y + size[1] * Math.cos(rotation));
+    v0.multiply(vScale);
+    v1.multiply(vScale);
+    v2.multiply(vScale);
+    v3.multiply(vScale);
+    var minX = Math.min(v0.x, v1.x, v2.x, v3.x);
+    var maxX = Math.max(v0.x, v1.x, v2.x, v3.x);
+    var minY = Math.min(v0.y, v1.y, v2.y, v3.y);
+    var maxY = Math.max(v0.y, v1.y, v2.y, v3.y);
+
+    //var v1 = new THREE.Vector3(size[0], 0, 0);
+    //var v2 = new THREE.Vector3(size[0], size[1], 0);
+    //var v3 = new THREE.Vector3(0, size[1], 0);
+    //var axis = new THREE.Vector3(0, 0, 1);
+    //v1.applyAxisAngle(axis, rotation).add(v0);
+    //v2.applyAxisAngle(axis, rotation).add(v0);
+    //v3.applyAxisAngle(axis, rotation).add(v0);
+
+    var quad_geo = new THREE.PlaneGeometry(1, 1);
+    quad_geo.vertices[0] = v3;
+    quad_geo.vertices[1] = v2;
+    quad_geo.vertices[2] = v0;
+    quad_geo.vertices[3] = v1;
     quad_geo.faceVertexUvs[0][0][0].set(0, 1);
     quad_geo.faceVertexUvs[0][0][1].set(0, 1 - tex_v);
     quad_geo.faceVertexUvs[0][0][2].set(tex_u, 1);
@@ -803,22 +884,29 @@ function genTextQuad(text, boarder, font, pixelSize, alignHorizontal, alignVerti
     quad_geo.uvsNeedUpdate = true;
     var alignTranslation = new THREE.Vector3(0, 0, 0.99);
     if (alignHorizontal == 'left') {
-        alignTranslation.x = size[0] / 2;
+        alignTranslation.x = -minX;
     }
     else if (alignHorizontal == 'right') {
-        alignTranslation.x = -size[0] / 2;
+        alignTranslation.x = -maxX;
+    }
+    else {
+        alignTranslation.x = -(maxX+minX)/2;
     }
     if (alignVertical == 'bottom') {
-        alignTranslation.y = size[1] / 2;
+        alignTranslation.y = -minY;
     }
-    else if (alignHorizontal == 'top') {
-        alignTranslation.y = -size[1] / 2;
+    else if (alignVertical == 'top') {
+        alignTranslation.y = -maxY;
+    }
+    else {
+        alignTranslation.y = -(maxY+minY)/2;
     }
     quad_geo.translate(alignTranslation.x, alignTranslation.y, alignTranslation.z);
     var quad_mat = new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
         color: 0xffffff,
+        //color: 0x000000,
     });
     var mesh = new THREE.Mesh(quad_geo, quad_mat);
     return mesh;

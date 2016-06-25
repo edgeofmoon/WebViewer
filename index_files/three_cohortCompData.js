@@ -21,6 +21,8 @@ var three_cohortCompData = function () {
     this.sortOrder = [];
     this.sortOption = SORT_RAW;
 
+    this.name = 'Unamed';
+
     // public
     this.computeStatus = function () {
         if (this.rois.length === 0) {
@@ -107,15 +109,19 @@ var three_cohortCompData = function () {
             alert('Already Full!');
         }
     }
+    // use abs value
     this.computeSortOrder = function (statsIndex, sortOption) {
         // sort and find range if necessary
+        var valueMap = function (value) {
+            return Math.abs(value);
+        }
         if (sortOption === SORT_INC) {
             var sortOrder = makeSortOrderFrom(this.cohortRoiCompStats,
                 function (compStat0, compStat1) {
-                    if (compStat0.getStats(statsIndex) > compStat1.getStats(statsIndex)) {
+                    if (valueMap(compStat0.getStats(statsIndex)) > valueMap(compStat1.getStats(statsIndex))) {
                         return 1;
                     }
-                    else if (compStat0.getStats(statsIndex) < compStat1.getStats(statsIndex)) {
+                    else if (valueMap(compStat0.getStats(statsIndex)) < valueMap(compStat1.getStats(statsIndex))) {
                         return -1;
                     }
                     return 0;
@@ -125,10 +131,10 @@ var three_cohortCompData = function () {
         else if (sortOption === SORT_DEC) {
             var sortOrder = makeSortOrderFrom(this.cohortRoiCompStats,
                 function (compStat0, compStat1) {
-                    if (compStat0.getStats(statsIndex) > compStat1.getStats(statsIndex)) {
+                    if (valueMap(compStat0.getStats(statsIndex)) > valueMap(compStat1.getStats(statsIndex))) {
                         return -1;
                     }
-                    else if (compStat0.getStats(statsIndex) < compStat1.getStats(statsIndex)) {
+                    else if (valueMap(compStat0.getStats(statsIndex)) < valueMap(compStat1.getStats(statsIndex))) {
                         return 1;
                     }
                     return 0;

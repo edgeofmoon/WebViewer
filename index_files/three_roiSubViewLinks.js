@@ -44,7 +44,10 @@ var three_roiSubViewLinks = function () {
                 var botAnchor = new THREE.Vector2(botBox.center().x, botBox.max.y);
                 if (botAnchor.x < 0 || botAnchor.x > 1) continue;
                 var botPixel = botView.globalPixelCoord(botAnchor);
-                this.drawCurve(upPixel, botPixel, rois[i].color);
+                //this.drawCurve(upPixel, botPixel, rois[i].color);
+                var topColor = topView.getRoiColor(rois[i]);
+                var botColor = botView.getRoiColor(rois[i]);
+                this.drawCurve(upPixel, botPixel, botColor, topColor);
             }
         }
     }
@@ -55,7 +58,8 @@ var three_roiSubViewLinks = function () {
         renderer.render(scene, camera);
     }
 
-    this.drawCurve = function (start, end, color) {
+    this.drawCurve = function (start, end, startColor, endColor) {
+        endColor = endColor ? endColor : startColor;
         var yRange = end.y - start.y;
         var sp = start.clone();
         sp.y += yRange / 3;
@@ -66,8 +70,23 @@ var three_roiSubViewLinks = function () {
         var path = new THREE.Path(curve.getPoints(numPoints));
         var geometry = path.createPointsGeometry(numPoints);
         geometry.vertices.length -= 1;
-        var material = new THREE.LineBasicMaterial({ color: 0x000000 });
-        material.color = color;
+        geometry.colors.length = geometry.vertices.length;
+        function interpolateColor(c0, c1, v) {
+            var w = 1 - v;
+            var r = c0.r * w + c1.r * v;
+            var g = c0.g * w + c1.g * v;
+            var b = c0.b * w + c1.b * v;
+            return new THREE.Color(r, g, b);
+        }
+        for (var iv = 0; iv < geometry.colors.length; iv++) {
+            var color = interpolateColor(startColor, endColor, iv / (geometry.colors.length - 1));
+            geometry.colors[iv] = color;
+        }
+        var material = new THREE.LineBasicMaterial({
+            color: 0xffffff,
+            vertexColors: THREE.VertexColors
+        });
+        //material.color = startColor;
         var curveObject = new THREE.Line(geometry, material);
         scene.add(curveObject);
     }
