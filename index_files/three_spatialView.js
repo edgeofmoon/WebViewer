@@ -34,10 +34,12 @@ var three_spatialView = function () {
     this.showAxis = true;
     this.showBoundary = false;
     this.tranparency = 0.2;
+    this.corticalTransparency = 0.2;
     this.showTracts = false;
     this.tractThreshold = 0.5;
     this.globalNormalization = true;
     this.stackerView = false;
+    this.roiLinks = true;
     this.inplaceCharts = true;
     // UI
     var gui = new dat.GUI({ autoPlace: false });
@@ -55,10 +57,10 @@ var three_spatialView = function () {
     function updateStacker() {
         if (scope.stackerView) {
             statsStackerView.viewbox = roiView.viewbox;
-            statsStackerView.cohortCompDataSets.length = 0;
+            statsStackerView.cohortCompDatasets.length = 0;
             for (var i = 0; i < roiView.subViews.length; i++) {
                 var cohortCompData = roiView.subViews[i].cohortCompData;
-                statsStackerView.cohortCompDataSets.push(cohortCompData);
+                statsStackerView.cohortCompDatasets.push(cohortCompData);
             }
             statsStackerView.update();
             statsStackerView.enable();
@@ -73,20 +75,29 @@ var three_spatialView = function () {
         var fileinput = document.getElementById('fileinput2');
         fileinput.click();
     };
+    this.resetCamera = function () {
+        this.camera.position.set(0, 0, 340);
+        this.camera.lookAt(this.scene.position);
+        this.camera.up.set(0, 1, 0);
+    }
     var f1 = gui.addFolder("Cortex Mesh");
     f1.add(this, 'showLeftMesh').name('Left hemisphere').onFinishChange(updateRender);
     f1.add(this, 'showRightMesh').name('Right hemisphere').onFinishChange(updateRender);
     f1.add(this, 'showAxis').name('Show axis').onFinishChange(toggleAxis);
     f1.add(this, 'showBoundary').name('Show boundary');
     f1.add(this, 'tranparency').min(0).max(1.0).name('Transparency').onChange(updateRender);
+    f1.add(this, 'corticalTransparency').min(0).max(1.0).name('Cortical Opacity').onChange(updateRender);
     f1.add(this, 'inplaceCharts').name('In place charts');
     var f2 = gui.addFolder("Tractography Mesh");
     f2.add(this, 'showTracts').name('Display with ROI');
     f2.add(this, 'tractThreshold').min(0).max(1.0).name('Density threshold').onChange(updateRender);
     f2.add(this, 'globalNormalization').name('Global normalization').onChange(updateNormalization);
     f2.add(this, 'stackerView').name('Stacker view').onChange(updateStacker);
-    var f3 = gui.addFolder("Data");
-    f3.add(this, 'updateData').name('Load Data');
+    f2.add(this, 'roiLinks').name('Show links');
+    var f3 = gui.addFolder("Camera");
+    f3.add(this, 'resetCamera').name('Reset Camera');
+    var f4 = gui.addFolder("Data");
+    f4.add(this, 'updateData').name('Load Data');
 
     
 	 $("div.dg.main")
@@ -151,9 +162,7 @@ var three_spatialView = function () {
     // init 
     this.init = function () {
         // setup camera
-        this.scene.add(this.camera);
-        this.camera.position.set(0, 0, 400);
-        this.camera.lookAt(this.scene.position);
+        this.resetCamera();
 
         // setup light
         this.light0.position.set(0, 0, 300);
@@ -214,11 +223,6 @@ var three_spatialView = function () {
                     objs[j] = obj;
                 }
             }
-            if (obj.roi) {
-                if (obj.roi.type == 'cortical') {
-                    obj.material.opacity = this.tranparency;
-                }
-            }
         }
         for (var j = 0; j < cortexMeshNames.length; j++) {
             if (objs[i] !== 0) {
@@ -266,7 +270,6 @@ var three_spatialView = function () {
                         child.geometry = unpackedGeometry;
                         child.geometry.computeFaceNormals();
                         child.geometry.computeVertexNormals();
-                        child.geometry.computeBoundingBox();
                         child.material.effectColor = color.clone();
                         child.material.color = color.clone();
                         if (renderable === undefined) {
@@ -275,6 +278,8 @@ var three_spatialView = function () {
                         else {
                             //renderable.add(child);
                             renderable.geometry.merge(child.geometry, child.matrix);
+                            child.geometry.computeBoundingBox();
+                            renderable.geometry.verticesNeedUpdate = true;
                         }
                         //callback(child);
                         numToLoader--;
@@ -318,7 +323,7 @@ var three_spatialView = function () {
             var mesh = new THREE.Mesh(geometry, colorMaterial);
             if (roi.type == 'cortical') {
                 colorMaterial.transparent = true;
-                colorMaterial.opacity = this.tranparency;
+                colorMaterial.opacity = scope.corticalTranparency;
                 if (geometry instanceof THREE.BufferGeometry) {
                     var unpackedGeometry = new THREE.Geometry().fromBufferGeometry(geometry);
                     unpackedGeometry.mergeVertices();
@@ -333,6 +338,8 @@ var three_spatialView = function () {
                     var lineSegments = new THREE.LineSegments(lineSegmentGeometry, lineMaterial);
                     mesh.add(lineSegments);
                 }
+                scope.updateRendering();
+                //scope.updateRenderingOrder();
             }
             if(roi.type == 'subcortical'){
                 mesh.rotateOnAxis(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
@@ -430,6 +437,12 @@ var three_spatialView = function () {
                     cortexMeshInScene[j] = true;
                 }
             }
+
+            if (obj.roi) {
+                if (obj.roi.type == 'cortical') {
+                    obj.material.opacity = this.corticalTransparency;
+                }
+            }
         }
         for (var j = 0; j < cortexMeshNames.length; j++) {
             if (cortexMeshShow[j] && !cortexMeshInScene[j]) {
@@ -495,6 +508,7 @@ var three_spatialView = function () {
             //scope.scene.remove(scope.selectedObj);
             if (scope.selectedObj.roi) {
                 scope.removeRoi(scope.selectedObj.roi);
+                scope.scene.remove(scope.selectedObj);
             }
             else {
                 // for compatability

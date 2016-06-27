@@ -40,7 +40,7 @@ var three_imageView = function () {
     var camera = new THREE.OrthographicCamera(0, 1, 1, 0, -100, 20000);
     var imgObjs = [];
     var totalHeight = 0;
-
+    var curIndex = 0;
     // functions
     var scope = this;
     this.setViewbox = function (viewbox) {
@@ -60,6 +60,7 @@ var three_imageView = function () {
             var imageObj = new THREE.Mesh(geometry, material);
             imageObj.roiName = roiName;
             imageObj.mainColor = color;
+            imageObj.index = curIndex++;
             imgObjs.push(imageObj);
             scene.add(imageObj);
             scope.updateLayout();
@@ -71,6 +72,10 @@ var three_imageView = function () {
         camera.bottom = -1 / aspect;
         camera.updateProjectionMatrix();
         totalHeight = 0;
+        function sortImages(img0, img1) {
+            return img0.index - img1.index;
+        }
+        imgObjs.sort(sortImages);
         /*
         for (var i = 0; i < imgObjs.length; i++) {
             var imgObj = imgObjs[i];

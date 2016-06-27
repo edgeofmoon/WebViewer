@@ -8,7 +8,8 @@ var three_inplaceCharts = function () {
     this.blockUnit = 1;
     this.blockSize = 0.05;
     this.barHeightMax = 0.15;
-    this.lensDistance = [0.8, 0.8];
+    this.lensPanelDistance = [0.8, 0.8];
+    this.lensPanelBoarder = [0.05, 0];
     this.barInterval = [0.02, 0.045];
 
     this.scene = new THREE.Scene();
@@ -137,11 +138,14 @@ var three_inplaceCharts = function () {
         zoneRois[1].reverse();
         var zoneLensStartNlc = [[1,1],[-1,1],[-1,1],[-1,-1]];
         var zoneOffsetNlc = [[0, -1], [1, 0], [0, -1], [1, 0]];
-        var zoneAnchorToBottomLeft = [[0,-1], [0,0], [-1,-1], [0,-1]];
+        var zoneAnchorToBottomLeft = [[0, -1], [0, 0], [-1, -1], [0, -1]];
+        var zoneLabelTilt = [0, -Math.PI / 4, 0, -Math.PI / 4];
         for (var iz = 0; iz < 4; iz++) {
             var rois = zoneRois[iz];
-            var zoneOffset = [zoneLensStartNlc[iz][0] * this.lensDistance[0],
-                zoneLensStartNlc[iz][1] * this.lensDistance[1]];
+            var zoneOffset = [zoneLensStartNlc[iz][0] * this.lensPanelDistance[0]
+                + Math.abs(zoneOffsetNlc[iz][0]) * this.lensPanelBoarder[0],
+                zoneLensStartNlc[iz][1] * this.lensPanelDistance[1]
+                + Math.abs(zoneOffsetNlc[iz][1]) * this.lensPanelBoarder[1]];
             for (ir = 0; ir < rois.length; ir++) {
                 var roi = rois[ir];
                 var geoAnchor = this.roiLayoutInfos.get(roi)[0];
@@ -157,6 +161,7 @@ var three_inplaceCharts = function () {
 
                 this.roiLayoutInfos.get(roi).push(new THREE.Vector3(lensAnchor[0], lensAnchor[1], geoAnchor.z));
                 this.roiLayoutInfos.get(roi).push(roiBox);
+                this.roiLayoutInfos.get(roi).push(zoneLabelTilt[iz]);
             }
         }
     }
@@ -211,15 +216,18 @@ var three_inplaceCharts = function () {
             var geoAnchor = value[0];
             var viewAnchor = value[1];
             var roiBox = value[2];
+            var labelTilt = value[3];
             var roiStatsInfos = scope.roiStatsInfos.get(roi);
             // renderables
             var renderableGroup;
             var roiViewBoxMesh;
+            var textMesh;
             var lineMesh;
             var sphereMesh;
             var viewBoxGeometry;
             if (scope.roiRenderables.has(roi)) {
                 renderableGroup = scope.roiRenderables.get(roi);
+                textMesh = renderableGroup.children[0];
                 lineMesh = renderableGroup.children[1];
                 sphereMesh = renderableGroup.children[2];
                 roiViewBoxMesh = renderableGroup.children[3];
@@ -229,8 +237,9 @@ var three_inplaceCharts = function () {
                 renderableGroup = new THREE.Object3D();
                 // label
                 var pixelSize = [2 / scope.viewbox.size().x, 2 / scope.viewbox.size().y];
-                var textMesh = genTextQuad(roi.name, 0, "12px Arial", pixelSize, 'left', 'top');
+                textMesh = genTextQuad(roi.name, 0, "12px Arial", pixelSize, 'left', 'top', labelTilt);
                 textMesh.frustumCulled = false;
+                textMesh.tilt = labelTilt;
                 renderableGroup.add(textMesh);
 
                 // line
@@ -284,7 +293,19 @@ var three_inplaceCharts = function () {
             lineMesh.geometry.verticesNeedUpdate = true;
 
             sphereMesh.position.copy(geoAnchor.clone().sub(roiBox.min));
-
+            if (labelTilt != textMesh.tilt) {
+                textMesh.geometry.dispose();
+                //textMesh.material.map.dispose();
+                //textMesh.material.dispose();
+                
+                var pixelSize = [2 / scope.viewbox.size().x, 2 / scope.viewbox.size().y];
+                var newTextMesh = genTextQuad(roi.name, 0, "12px Arial", pixelSize, 'left', 'top', labelTilt);
+                textMesh.geometry = newTextMesh.geometry;
+                textMesh.tilt = labelTilt;
+                newTextMesh.material.map.dispose();
+                newTextMesh.material.dispose();
+                //textMesh.material = newTextMesh.material;
+            }
             renderableGroup.position.copy(roiBox.min);
 
             // now update each bar
@@ -323,6 +344,7 @@ var three_inplaceCharts = function () {
     }
     this.updatRoiMeshColor = function (cIdx) {
         cIdx = cIdx ? cIdx : 0;
+        if (cIdx >= this.cohortCompDatasets.length) return;
         var cohortCompData = this.cohortCompDatasets[cIdx];
         var rois = cohortCompData.rois;
         for (var ir = 0; ir < rois.length; ir++) {
@@ -374,9 +396,10 @@ var three_inplaceCharts = function () {
             scope.updatRoiMeshColor(data[0]);
             tooltip.setPosition(coord);
             tooltip.setText(roi.fullname +
+                "\nDataset: "+compData.name +
                 "\nEffect size: " + effectSize +
                 "\np value: " + pValue +
-                "\nClick to chart view.");
+                "\nClick to remove.");
         }
     }
 
@@ -394,6 +417,7 @@ var three_inplaceCharts = function () {
         }
         var data = scope.getDataByCoord(coord);
         if (data) {
+            /*
             var cohortCompData = scope.cohortCompDatasets[data[0]];
             var newSubView = roiView.addSubView(cohortCompData.rois);
             newSubView.cohortCompData = cohortCompData;
@@ -401,6 +425,9 @@ var three_inplaceCharts = function () {
             newSubView.setStatsIndex(1);
             newSubView.name = cohortCompData.name;
             roiView.update();
+            statsStackerView.cohortCompDatasets.push(cohortCompData);
+            statsStackerView.update();
+            */
             scope.cohortCompDatasets.splice(data[0], 1);
             scope.updatRoiMeshColor();
         }

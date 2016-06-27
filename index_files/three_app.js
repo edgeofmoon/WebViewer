@@ -130,8 +130,8 @@ var three_app = function (renderer) {
         imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mhippo_Oct10_1_manhattan.png", "hippocampus", new THREE.Color("rgb(204,204,204)"));
         imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mhippo_Oct10_1_qq.png", "hippocampus", new THREE.Color("rgb(204,204,204)"));
 
-        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mpal_Oct10_1_manhattan.png", "palidum", new THREE.Color("rgb(255,174,185)"));
-        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mpal_Oct10_1_qq.png", "palidum", new THREE.Color("rgb(255,174,185)"));
+        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mpal_Oct10_1_manhattan.png", "pallidum", new THREE.Color("rgb(255,174,185)"));
+        imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mpal_Oct10_1_qq.png", "pallidum", new THREE.Color("rgb(255,174,185)"));
 
         imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mput_Oct10_1_manhattan.png", "putamen", new THREE.Color("rgb(204,102,255)"));
         imgView.addImage("data/statsImages/COMBINED_SE_DGC_Mput_Oct10_1_qq.png", "putamen", new THREE.Color("rgb(204,102,255)"));

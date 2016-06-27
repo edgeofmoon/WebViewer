@@ -685,8 +685,10 @@ var three_roiSubView = function (roiView) {
             else {
                 var coord = eventCoord(event);
                 if (spatialView.viewbox.containsPoint(coord)) {
-                    inplaceCharts.cohortCompDatasets.push(this.cohortCompData);
-                    roiView.removeSubView(this);
+                    if (inplaceCharts.cohortCompDatasets.indexOf(this.cohortCompData) < 0) {
+                        inplaceCharts.cohortCompDatasets.push(this.cohortCompData);
+                    }
+                    //roiView.removeSubView(this);
                 }
             }
             roiView.updateRoiViewLinks();

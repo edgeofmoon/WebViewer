@@ -319,10 +319,10 @@ three_dataLoader.loadCSVDatahandler = function (evt) {
         }
         // update stacker
         statsStackerView.viewbox = roiView.viewbox;
-        statsStackerView.cohortCompDataSets.length = 0;
+        statsStackerView.cohortCompDatasets.length = 0;
         for (var i = 0; i < roiView.subViews.length; i++) {
             var cohortCompData = roiView.subViews[i].cohortCompData;
-            statsStackerView.cohortCompDataSets.push(cohortCompData);
+            statsStackerView.cohortCompDatasets.push(cohortCompData);
         }
         statsStackerView.update();
 

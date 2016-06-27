@@ -34,11 +34,13 @@ var three_roiView = function () {
         }
         legendManager.render();
         //return;
-        if (this.subViews.length - 1 > roiSubViewLinks.length) {
-            this.updateRoiViewLinks();
-        }
-        for (var i = 1; i < this.subViews.length; i++) {
-            roiSubViewLinks[i-1].render();
+        if (spatialView.roiLinks) {
+            if (this.subViews.length - 1 > roiSubViewLinks.length) {
+                this.updateRoiViewLinks();
+            }
+            for (var i = 1; i < this.subViews.length; i++) {
+                roiSubViewLinks[i - 1].render();
+            }
         }
         //console.log(renderer.info.programs.length);
     }

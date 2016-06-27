@@ -1,7 +1,7 @@
 
 var three_statsRiver = function () {
 
-    this.cohortCompDataSets = [];
+    this.cohortCompDatasets = [];
     this.viewbox = new THREE.Box2();
     var scene = new THREE.Scene();
     var camera = new THREE.OrthographicCamera(-0.02, 1.02, 1.02, -0.02, -100, 20000);
@@ -48,8 +48,8 @@ var three_statsRiver = function () {
 
     this.updateRoiInfos = function () {
         this.roiInfos.clear();
-        for (var i = 0; i < this.cohortCompDataSets.length; i++) {
-            var cohortCompData = this.cohortCompDataSets[i];
+        for (var i = 0; i < this.cohortCompDatasets.length; i++) {
+            var cohortCompData = this.cohortCompDatasets[i];
             var rois = cohortCompData.rois;
             for (var ir = 0; ir < rois.length; ir++) {
                 var roi = rois[ir];
@@ -130,12 +130,12 @@ var three_statsRiver = function () {
 
         // draw streams
         var dataOrder = [];
-        for (var i = 0; i < this.cohortCompDataSets.length; i++) {
+        for (var i = 0; i < this.cohortCompDatasets.length; i++) {
             dataOrder.push(i);
         }
         var roiAccHeight = new Map();
         var withinBarOffsets = [0.2, 0.8];
-        for (var ic = 0; ic < this.cohortCompDataSets.length; ic++) {
+        for (var ic = 0; ic < this.cohortCompDatasets.length; ic++) {
             var ccdsIdx = dataOrder[ic];
             var xOffset = 0;
 
