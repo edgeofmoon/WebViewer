@@ -144,8 +144,10 @@ var three_roiSubView = function (roiView) {
                 subScene.add(roiBox.renderable);
 
                 // check if selected
-                var object = spatialView.scene.getObjectByName(this.getRois()[i].name);
-                if (object !== null && object !== undefined) {
+                //var object = spatialView.scene.getObjectByName(this.getRois()[i].name);
+                //if (object !== null && object !== undefined) {
+                var roi = this.getRois()[i];
+                if(spatialView.getRoiMesh(roi) !== undefined || spatialView.isRoiLoading(roi)){
                     var wholeBox = this.roiBoxLayout.boxAt(i);
                     var highlightBox = scaleAtPoint(wholeBox, wholeBox.center(), 1);
                     var material = new THREE.MeshBasicMaterial({
@@ -455,7 +457,8 @@ var three_roiSubView = function (roiView) {
     }
     this.getRoiByPixelCoord = function(coord) {
         if (this.getRois().length == 0) return null;
-        var viewboxAdj = this.viewbox;
+        var theViewBox = this.getViewbox();
+        var viewboxAdj = cutBox(theViewBox, 0, 1 - 1 / 1.02, 1 / 1.02);
         var norCoord = normalizedCoord(viewboxAdj, coord);
         for (var i = 0; i < this.getRois().length; i++) {
             var box = this.roiBoxLayout.boxAt(i);

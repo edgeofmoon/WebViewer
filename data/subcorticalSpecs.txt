@@ -1,0 +1,8 @@
+ACB	Accumbens	:	9	21
+AMG	Amygdala	:	10	22
+CD	Caudate	:	11	23
+HPC	Hippocampus	:	14	26
+PLD	Pallidum	:	17	29
+PTM	Putamen	:	18	30
+TLM	Thalamus	:	19	31
+LV	Lateral Ventricle	:	16	28

@@ -174,7 +174,8 @@
                 float diffusion = 0.6*clamp(dot(transformedNormal,lightDir), 0.0, 1.0);
                 //float diffusion = 0.6*abs(dot(transformedNormal,lightDir));
                 vec3 eyeDir = -normalize(transformedPosition);
-                vec3 hv = normalize(eyeDir+lightDir);
+                //vec3 hv = normalize(eyeDir+lightDir);
+                vec3 hv = normalize(-reflect(lightDir,transformedNormal));
                 float specular = 0.2*pow(clamp(dot(hv,transformedNormal),0.0, 1.0), 16.0);
                 //float specular = 0.2*clamp(pow(abs(dot(hv,transformedNormal)), 16.0), 0.0, 1.0);
                 gl_FragColor = vec4(1,1,1,1);

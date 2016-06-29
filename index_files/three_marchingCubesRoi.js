@@ -3,6 +3,8 @@ var three_marchingCubesRoi = function (roi, isolevel) {
 
     var points = [];
     var values = roi.data;
+    //var values = roi.data.slice();
+    //var values = [].slice.call(roi.data);
 
     // number of cubes along a side
     var bMin = roi.boundingbox.min;
@@ -13,12 +15,63 @@ var three_marchingCubesRoi = function (roi, isolevel) {
 
     var sizes = new THREE.Vector3(roi.sizes[0], roi.sizes[1], roi.sizes[2]);
 
+    function toIdx(xx, yy, zz) {
+        return xx + bSize * yy + bSize2 * zz;
+    };
     // Generate a lzst of 3D poznts and values at those poznts
     for (var z = bMin.z; z < bMax.z; z++)
         for (var y = bMin.y; y < bMax.y; y++)
             for (var x = bMin.x; x < bMax.x; x++) {
                 var point = new THREE.Vector3(x - sizes.x / 2, y - sizes.y / 2, z - sizes.z / 2);
                 points.push(point);
+
+                /*
+                // smooth volume
+                var xx = x - bMin.x;
+                var yy = y - bMin.y;
+                var zz = z - bMin.z;
+                var p = [];
+                var idx = 0;
+                var value = 0;
+                var weight = 0;
+                
+                if (xx > 0) {
+                    idx = toIdx(xx-1, yy, zz);
+                    value += roi.data[idx];
+                    weight++;
+                }
+                if (yy > 0) {
+                    idx = toIdx(xx, yy - 1, zz);
+                    value += roi.data[idx];
+                    weight++;
+                }
+                if (zz > 0) {
+                    idx = toIdx(xx, yy, zz - 1);
+                    value += roi.data[idx];
+                    weight++;
+                }
+                if (xx < bMax.x - 1) {
+                    idx = toIdx(xx + 1, yy, zz);
+                    value += roi.data[idx];
+                    weight++;
+                }
+                if (yy < bMax.y - 1) {
+                    idx = toIdx(xx, yy + 1, zz);
+                    value += roi.data[idx];
+                    weight++;
+                }
+                if (zz < bMax.z - 1) {
+                    idx = toIdx(xx, yy, zz + 1);
+                    value += roi.data[idx];
+                    weight++;
+                }
+                value /= weight;
+                if (value != 0) {
+                    idx = toIdx(xx, yy, zz);
+                    var newValue = (value + roi.data[idx]) / 2;
+                    values[idx] = newValue;
+                }
+                */
             }
 
     // Marching Cubes Algorithm
@@ -163,7 +216,7 @@ var three_marchingCubesRoi = function (roi, isolevel) {
     //geometry.computeCentroids();
     geometry.mergeVertices();
     geometry.computeFaceNormals();
-    geometry.computeVertexNormals();
+    geometry.computeVertexNormals(true);
 
     return geometry;
 }

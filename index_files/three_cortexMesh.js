@@ -17,6 +17,11 @@ coretexMesh_material = new THREE.ShaderMaterial(
         transparent: true,
     });
 
+coretexMesh_material2 = new THREE.MeshLambertMaterial(
+    {
+        color: 0xffffff,
+    });
+
 var three_cortexMesh = function (lfn, rfn, scene) {
     var extension_lfn = lfn.split('.').pop();
     var loader;
@@ -32,11 +37,20 @@ var three_cortexMesh = function (lfn, rfn, scene) {
     loader.load(lfn, function (object) {
         object.traverse(function (child) {
             if (child instanceof THREE.Mesh) {
-                //child.material = cortexMaterial;
+                child.material.dispose();
                 child.material = coretexMesh_material;
-                //child.geometry.mergeVertices();
+                var geometry = new THREE.Geometry();
+                geometry.fromBufferGeometry(child.geometry);
+                child.geometry.dispose();
+                child.geometry = geometry;
+                child.geometry.mergeVertices();
                 child.geometry.computeFaceNormals();
                 child.geometry.computeVertexNormals();
+                // back to buffer geometry 
+                geometry = new THREE.BufferGeometry();
+                geometry.fromGeometry(child.geometry);
+                child.geometry.dispose();
+                child.geometry = geometry;
                 child.name = 'lh';
                 scene.add(child);
             }
@@ -57,10 +71,20 @@ var three_cortexMesh = function (lfn, rfn, scene) {
     loader.load(rfn, function (object) {
         object.traverse(function (child) {
             if (child instanceof THREE.Mesh) {
+                child.material.dispose();
                 child.material = coretexMesh_material;
-                //child.geometry.mergeVertices();
+                var geometry = new THREE.Geometry();
+                geometry.fromBufferGeometry(child.geometry);
+                child.geometry.dispose();
+                child.geometry = geometry;
+                child.geometry.mergeVertices();
                 child.geometry.computeFaceNormals();
                 child.geometry.computeVertexNormals();
+                // back to buffer geometry 
+                geometry = new THREE.BufferGeometry();
+                geometry.fromGeometry(child.geometry);
+                child.geometry.dispose();
+                child.geometry = geometry;
                 child.name = 'rh';
                 scene.add(child);
             }

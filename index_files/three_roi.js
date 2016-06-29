@@ -17,7 +17,7 @@ var three_roi = function (sizes) {
 
     // tmp
     this.vol = undefined;
-    this.meshFn = undefined;
+    this.meshFns = [];
     this.type = 'subcortical';
 }
 
@@ -138,13 +138,62 @@ three_roi.prototype.computeGeometry = function (callback) {
             loader.load(this.meshFn, function (object) {
                 object.traverse(function (child) {
                     if (child instanceof THREE.Mesh) {
+                        child.geometry.mergeVertices();
                         scope.geometry = child.geometry;
                         scope.geometry.computeFaceNormals();
                         scope.geometry.computeVertexNormals();
+                        child.material.dispose();
                         callback(scope.geometry);
                     }
                 });
             });
+        }
+        else if (this.meshFns) {
+            var curGeo;
+            var partsToLoad = this.meshFns.length;
+            for (var im = 0; im < this.meshFns.length; im++) {
+                var meshFn = this.meshFns[im];
+                var extension_lfn = meshFn.split('.').pop();
+                var loader;
+                if (extension_lfn == 'obj') {
+                    loader = new THREE.OBJLoader();
+                }
+                else if (extension_lfn == 'stl') {
+                    loader = new THREE.STLLoader();
+                }
+                else { alert('Unknown mesh format!'); }
+                var scope = this;
+                loader.load(meshFn, function (object) {
+                    object.traverse(function (child) {
+                        if (child instanceof THREE.Mesh) {
+                            if (curGeo == undefined) {
+                                curGeo = new THREE.Geometry();
+                                curGeo.fromBufferGeometry(child.geometry);
+                                //curGeo = child.geometry;
+                                child.geometry.dispose();
+                                child.material.dispose();
+                            }
+                            else {
+                                //curGeo.merge(child.geometry, child.matrix);
+                                var fltGeo = new THREE.Geometry();
+                                fltGeo.fromBufferGeometry(child.geometry);
+                                curGeo.merge(fltGeo);
+                                fltGeo.dispose();
+                                child.geometry.dispose();
+                                child.material.dispose();
+                            }
+                            partsToLoad--;
+                            if (0 == partsToLoad) {
+                                curGeo.mergeVertices();
+                                curGeo.computeFaceNormals();
+                                curGeo.computeVertexNormals();
+                                curGeo.verticesNeedUpdate = true;
+                                callback(curGeo);
+                            }
+                        }
+                    });
+                });
+            }
         }
     }
     else {

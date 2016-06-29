@@ -342,8 +342,14 @@ function disposeHierarchy(node) {
 }
 
 var getRoiByName = function (rn) {
+    for (var r = globalRois.length-1; r >=0; r--) {
+        if (!globalRois[r]) {
+            globalRois.splice(r, 1);
+        }
+    }
+    
     for (var r = 0; r < globalRois.length; r++) {
-        if (globalRois[r].name == rn) {
+        if (globalRois[r].name == rn || globalRois[r].fullname == rn) {
             return globalRois[r];
         }
     }
@@ -623,7 +629,7 @@ function findCorticalMeshName(roiName) {
 function loadRoiSpec(volfn, specfn, callback) {
     function makeRois(vol, roiSpecs) {
         var rois = [];
-        roiSpecs.forEach(function(value, key, map){
+        roiSpecs.forEach(function (value, key, map) {
             var roi = new three_roi(vol.sizes);
             roi.name = key;
             roi.fullname = value[0];
@@ -706,6 +712,121 @@ function loadRoiSpec(volfn, specfn, callback) {
         partsLoaded++;
         if (partsLoaded === 2) {
             var rois = makeRois(vol, roiSpecs);
+            callback(rois);
+        }
+    }, false);
+    client2.send();
+}
+
+function loadMeshRoiSpecs(meshSpecsFile, roiSpecFile, callback) {
+    var partsLoaded = 0;
+    var meshSpecs = new Map();
+    var roiSpecs = new Map();
+
+    function makeRois() {
+        var rois = [];
+        roiSpecs.forEach(function (value, key, map) {
+            var roi = new three_roi();
+            roi.name = key;
+            roi.fullname = value[0];
+            var meshIdxs = value[1];
+            for (var im = 0; im < meshIdxs.length; im++) {
+                var meshIdx = meshIdxs[im];
+                var meshFn = meshSpecs.get(meshIdx);
+                roi.meshFns.push(meshFn);
+            }
+            rois.push(roi);
+        });
+        if (callback) {
+            callback(rois);
+        }
+    }
+
+    // load mesh specs file
+    var client = new XMLHttpRequest();
+    client.open('GET', meshSpecsFile, true);
+    client.addEventListener('load', function (event) {
+        var lines = event.target.response.split('\n');
+        var decimerList = ['\n', '\t', ' '];
+        var firstLine = lines[0].split('\t');
+        var meshDir = firstLine[1];
+        for (var i = 1; i < lines.length; i++) {
+            var meshIndex = -1;
+            var fileName = '';
+            var remaining = lines[i];
+            while (remaining.length !== 0) {
+                var decimerIndex = getNextCharIndex(remaining, decimerList);
+                if (decimerIndex !== 0) {
+                    if (meshIndex === -1) {
+                        meshIndex = Number(remaining.substring(0, decimerIndex));
+                        remaining = remaining.substring(decimerIndex + 1);
+                    }
+                    else if (fileName === '') {
+                        var fullNameEnd = getNextCharIndex(remaining, [':']);
+                        fileName = remaining.substring(0, fullNameEnd - 1);
+                        remaining = remaining.substring(fullNameEnd + 1);
+                    }
+                }
+                else {
+                    remaining = remaining.substring(decimerIndex + 1);
+                }
+            }
+            if (meshIndex >= 0 && fileName.length !== 0) {
+                meshSpecs.set(meshIndex, meshDir+fileName);
+            }
+        }
+        partsLoaded++;
+        if (partsLoaded === 2) {
+            var rois = makeRois();
+            callback(rois);
+        }
+    }, false);
+    client.send();
+
+    // load roi specs file
+    var client2 = new XMLHttpRequest();
+    client2.open('GET', roiSpecFile, true);
+    client2.addEventListener('load', function (event) {
+        var lines = event.target.response.split('\n');
+        var decimerList = ['\n', '\t', ' '];
+        roiSpecs = new Map();
+        for (var i = 0; i < lines.length; i++) {
+            var labelName = '';
+            var labelFullName = '';
+            var maskValues = [];
+            var remaining = lines[i];
+            while (remaining.length !== 0) {
+                var decimerIndex = getNextCharIndex(remaining, decimerList);
+                if (decimerIndex !== 0) {
+                    if (labelName === '') {
+                        labelName = remaining.substring(0, decimerIndex);
+                        remaining = remaining.substring(decimerIndex + 1);
+                    }
+                    else if (labelFullName === '') {
+                        var fullNameEnd = getNextCharIndex(remaining, [':']);
+                        labelFullName = remaining.substring(0, fullNameEnd - 1);
+                        remaining = remaining.substring(fullNameEnd + 1);
+                    }
+                    else {
+                        var numStr = remaining.substring(0, decimerIndex);
+                        if (parseInt(numStr)) {
+                            var maskValue = Number(numStr);
+                            maskValues.push(maskValue);
+                        }
+                        remaining = remaining.substring(decimerIndex + 1);
+                    }
+                }
+                else {
+                    remaining = remaining.substring(decimerIndex + 1);
+                }
+            }
+            if (labelName !== '' && maskValues.length !== 0) {
+                roiSpecs.set(labelName, [labelFullName, maskValues]);
+            }
+        }
+        partsLoaded++;
+        if (partsLoaded === 2) {
+            var rois = makeRois();
             callback(rois);
         }
     }, false);

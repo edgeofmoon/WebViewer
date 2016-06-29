@@ -13,7 +13,7 @@ var three_app = function (renderer) {
     inplaceCharts = new three_inplaceCharts();
 
     //roiView.addDummySubView();
-    globalRois = null;
+    globalRois = [];
 
     // tooltip
     tooltip = new three_tooltip();
@@ -27,9 +27,16 @@ var three_app = function (renderer) {
 
 
     loadRoiSpec('data/JHU-WhiteMatter-labels-1mm.nii', 'data/roiSpec3.txt', function (rois) {
-        globalRois = rois;
+        var allrois = globalRois.concat(rois);
+        globalRois = allrois;
         loadPreviewCVSData('data/Table-3.csv');
         loadPreviewCVSData('data/Table-4.csv');
+    });
+
+
+    loadMeshRoiSpecs('data/subcorticalFiles.txt', 'data/subcorticalSpecs.txt', function (rois) {
+        var allrois = globalRois.concat(rois);
+        globalRois = allrois;
     });
 
     document.getElementById('fileinput').addEventListener('change', three_dataLoader.loadRoisFileEventHandler, false);
@@ -113,8 +120,8 @@ var three_app = function (renderer) {
         spatialView.init();
         spatialView.setViewport([0, 0, window.innerWidth, window.innerHeight]);
         //spatialView.addCortexMesh("data/lh.pial.obj", "data/rh.pial.obj");
-        spatialView.addCortexMesh("data/lh.trans.pial.obj", "data/rh.pial.obj");
-        //spatialView.addCortexMesh("data/lh.trans.pial.obj", "data/rh.trans.pial.obj");
+        //spatialView.addCortexMesh("data/lh.trans.pial.obj", "data/rh.pial.obj");
+        spatialView.addCortexMesh("data/lh.trans.pial.obj", "data/rh.trans.pial.obj");
         //spatialView.addCortexMesh("data/lh.pial.obj", "data/rh.pial.obj");
         //spatialView.addCortexMesh("data/lh.orig.obj", "data/rh.orig.obj");
         //spatialView.addMarchingCubesMesh(vol, 0.4);

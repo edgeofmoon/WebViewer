@@ -213,7 +213,7 @@ three_dataLoader.loadCSVDatahandler = function (evt) {
                 var corticalRoi = new three_roi(-1);
                 corticalRoi.name = roiName;
                 corticalRoi.type = 'cortical';
-                corticalRoi.meshFn = meshName;
+                corticalRoi.meshFns.push(meshName);
                 rois.push(corticalRoi);
                 roiCols.push(i);
                 globalRois.push(corticalRoi);
