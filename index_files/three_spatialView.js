@@ -488,6 +488,9 @@ var three_spatialView = function () {
         //uiPanel.render();
     }
 
+    // only unmoved mouse click, i.e. not drag
+    // removes meshes
+    var moved = false;
     function onMouseMove(event) {
         //uiPanel.onMouseMove(event);
 
@@ -505,15 +508,18 @@ var three_spatialView = function () {
                 tooltip.setPosition(scope.mousei);
                 tooltip.setText(scope.selectedObj.name+'\n(Click to remove)');
             }
+            moved = true;
         }
     }
     function onMouseDown(event) {
         if (event.button !== 0) return;
-        //if (uiPanel.eventInBox(event)) {
-        //    uiPanel.onMouseDown(event);
-        //    return;
-        //}
-        if (scope.selectedObj !== undefined) {
+        if (!scope.eventInBox(event)) return;
+        moved = false;
+    }
+    function onMouseUp(event) {
+        if (event.button !== 0) return;
+        if (!scope.eventInBox(event)) return;
+        if (scope.selectedObj !== undefined && !moved) {
             //scope.scene.remove(scope.selectedObj);
             if (scope.selectedObj.roi) {
                 scope.removeRoi(scope.selectedObj.roi);
@@ -523,8 +529,8 @@ var three_spatialView = function () {
                 // for compatability
                 scope.scene.remove(scope.selectedObj);
             }
+            roiView.update();
         }
-        roiView.update();
     }
     function buttonClickHandler(arg, event) {
         if (arg === 'up') {
@@ -550,6 +556,7 @@ var three_spatialView = function () {
     }
     window.addEventListener('mousemove', onMouseMove, false);
     window.addEventListener('mousedown', onMouseDown, false);
+    window.addEventListener('mouseup', onMouseUp, false);
 }
 
 
