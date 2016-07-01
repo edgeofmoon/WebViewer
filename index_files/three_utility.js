@@ -211,6 +211,64 @@ function getProjection(worldCoord, worldMatrix, camera, viewbox) {
     return pixel;
 }
 
+function sortObjectFacesByDepths(obj, matrix) {
+    var faceDepths = new Map();
+    for (var i = 0; i < obj.geometry.faces.length; i++) {
+        var face = obj.geometry.faces[i];
+        /*
+        var v0 = obj.geometry.vertices[face.a];
+        var v1 = obj.geometry.vertices[face.b];
+        var v2 = obj.geometry.vertices[face.c];
+        var vc = new THREE.Vector3((v0.x + v1.x + v2.x) / 3,
+            (v0.y + v1.y + v2.y) / 3, (v0.z + v1.z + v2.z) / 3);
+        var vcNds = vc.applyMatrix4(matrix);
+        faceDepths.set(face, vcNds.x * vcNds.x + vcNds.y * vcNds.y + vcNds.z * vcNds.z);
+        */
+        var v0 = obj.geometry.vertices[face.a];
+        var v0Proj = v0.clone().applyMatrix4(matrix);
+        faceDepths.set(face, v0Proj.z);
+    }
+    function sortFace(face0, face1) {
+        var depth0 = faceDepths.get(face0);
+        var depth1 = faceDepths.get(face1);
+        return depth0 - depth1;
+    }
+    obj.geometry.faces.sort(sortFace);
+    //obj.geometry.faces.length = Math.round(obj.geometry.faces.length/2);
+    obj.geometry.elementsNeedUpdate = true;
+    var oldGeometry = obj.geometry;
+    obj.geometry = new THREE.Geometry();
+    obj.geometry.faces = oldGeometry.faces.slice();
+    obj.geometry.vertices = oldGeometry.vertices.slice();
+    oldGeometry.dispose();
+    console.log("sorted");
+    //return;
+    obj.geometry.colorsNeedUpdate = true;
+    for (var i = 0; i < obj.geometry.faces.length; i++) {
+        var face = obj.geometry.faces[i];
+        var c = three_colorTable.divergingColor(i / 2 - obj.geometry.faces.length / 2,
+            -obj.geometry.faces.length / 2, obj.geometry.faces.length / 2);
+        face.color.set(c);
+    }
+}
+
+function sortObjectsByDepth(objs, matrix) {
+    var centroidDepths = new Map();
+    for (var i = 0; i < objs.length; i++) {
+        var obj = objs[i];
+        if (!obj.geometry.boundingBox) obj.geometry.computeBoundingBox()
+        var center = obj.geometry.boundingBox.center();
+        var centerProj = center.clone().applyMatrix4(matrix);
+        centroidDepths.set(obj, centerProj.z);
+    }
+    function sortDepth(obj0, obj1) {
+        var depth0 = centroidDepths.get(obj0);
+        var depth1 = centroidDepths.get(obj1);
+        return depth0 - depth1;
+    }
+    objs.sort(sortDepth);
+}
+
 function findMeshBoundary(vertices, faces) {
     var count = new Map();
     var maxIdx = 0;

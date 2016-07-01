@@ -138,6 +138,10 @@ var three_roiSubView = function (roiView) {
             }
             this.roiBoxLayout.statsIndex = statsIndex;
             this.roiBoxLayout.update();
+            if (status !== ROIVIEW_STATUS_NONE) {
+                this.updateQuadAxis();
+                this.updateBarAxis();
+            }
 
             for (var i = 0; i < this.getRois().length; i++) {
                 var roiBox = this.makeRoiBox(i);
@@ -278,10 +282,6 @@ var three_roiSubView = function (roiView) {
     this.updateLegend = function () {
 
         var status = this.cohortCompData.computeStatus();
-        if (status !== ROIVIEW_STATUS_NONE) {
-            this.updateQuadAxis();
-            this.updateBarAxis();
-        }
 
         /*
         if (status === ROIVIEW_STATUS_COMP) {

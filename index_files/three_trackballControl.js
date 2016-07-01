@@ -484,7 +484,7 @@ var three_trackballControl = function (object, domElement, responseBox) {
         if (_this.enabled === false) return;
 
         event.preventDefault();
-        event.stopPropagation();
+        //event.stopPropagation();
 
         var delta = 0;
 

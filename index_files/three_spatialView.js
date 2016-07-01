@@ -34,7 +34,7 @@ var three_spatialView = function () {
     this.showAxis = true;
     this.showBoundary = false;
     this.tranparency = 0.2;
-    this.corticalTransparency = 0.2;
+    this.autoVerticesSort = false;
     this.showTracts = false;
     this.tractThreshold = 0.5;
     this.globalNormalization = true;
@@ -54,6 +54,10 @@ var three_spatialView = function () {
     function updateNormalization() {
         roiView.update();
     };
+    function sortVertices() {
+        scope.sortMeshVertices();
+        scope.sortMeshes();
+    }
     function updateStacker() {
         if (scope.stackerView) {
             statsStackerView.viewbox = roiView.viewbox;
@@ -80,13 +84,56 @@ var three_spatialView = function () {
         this.camera.lookAt(this.scene.position);
         this.camera.up.set(0, 1, 0);
     }
+    this.sortMeshVertices = function () {
+        if (!this.autoVerticesSort) return;
+        var cortexMeshNames = ['lh', 'rh'];
+        var matrix = this.camera.projectionMatrix.clone().multiply(this.camera.matrixWorldInverse);
+        for (var i = this.scene.children.length - 1; i >= 0 ; i--) {
+            var obj = this.scene.children[i];
+            if (obj instanceof THREE.Mesh) {
+                if (obj.roi) {
+                    if (obj.roi.type == "cortical") {
+                        sortObjectFacesByDepths(obj, matrix);
+                    }
+                }
+                else if (obj.name == cortexMeshNames[0] || obj.name == cortexMeshNames[1]) {
+                    sortObjectFacesByDepths(obj, matrix);
+                }
+            }
+        }
+    }
+    this.sortMeshes = function () {
+        var cortexMeshNames = ['lh', 'rh'];
+        var matrix = this.camera.projectionMatrix.clone().multiply(this.camera.matrixWorldInverse);
+        var corticalRoiMeshes = [];
+        var cortexMeshes = [];
+        for (var i = this.scene.children.length - 1; i >= 0 ; i--) {
+            var obj = this.scene.children[i];
+            if (obj instanceof THREE.Mesh) {
+                if (obj.roi) {
+                    if (obj.roi.type == "cortical") {
+                        corticalRoiMeshes.push(obj);
+                        this.scene.remove(obj);
+                    }
+                }
+                else if (obj.name == cortexMeshNames[0] || obj.name == cortexMeshNames[1]) {
+                    cortexMeshes.push(obj);
+                    this.scene.remove(obj);
+                }
+            }
+        }
+        sortObjectsByDepth(corticalRoiMeshes, matrix);
+        sortObjectsByDepth(cortexMeshes, matrix);
+        for (var i in corticalRoiMeshes) this.scene.add(corticalRoiMeshes[i]);
+        for (var i in cortexMeshes) this.scene.add(cortexMeshes[i]);
+    }
     var f1 = gui.addFolder("Cortex Mesh");
     f1.add(this, 'showLeftMesh').name('Left hemisphere').onFinishChange(updateRender);
     f1.add(this, 'showRightMesh').name('Right hemisphere').onFinishChange(updateRender);
     f1.add(this, 'showAxis').name('Show axis').onFinishChange(toggleAxis);
     f1.add(this, 'showBoundary').name('Show boundary');
     f1.add(this, 'tranparency').min(0).max(1.0).name('Transparency').onChange(updateRender);
-    f1.add(this, 'corticalTransparency').min(0).max(1.0).name('Cortical Transparency').onChange(updateRender);
+    f1.add(this, 'autoVerticesSort').name('AutoVerticesSort').onChange(sortVertices);
     f1.add(this, 'inplaceCharts').name('In place charts');
     var f2 = gui.addFolder("Tractography Mesh");
     f2.add(this, 'showTracts').name('Display with ROI');
@@ -324,7 +371,7 @@ var three_spatialView = function () {
             var mesh = new THREE.Mesh(geometry, colorMaterial);
             if (roi.type == 'cortical') {
                 colorMaterial.transparent = true;
-                colorMaterial.opacity = scope.corticalTranparency;
+                colorMaterial.opacity = 1-scope.corticalTranparency;
                 if (geometry instanceof THREE.BufferGeometry) {
                     var unpackedGeometry = new THREE.Geometry().fromBufferGeometry(geometry);
                     unpackedGeometry.mergeVertices();
@@ -430,8 +477,6 @@ var three_spatialView = function () {
         var cortexMeshNames = ['lh', 'rh'];
         var cortexMeshShow = [this.showLeftMesh && this.tranparency < 0.99,
             this.showRightMesh && this.tranparency < 0.99];
-        console.log("before updating:");
-        console.log(this.scene.children);
         for (var i = this.scene.children.length - 1; i >= 0 ; i--) {
             var obj = this.scene.children[i];
             for (var j = 0; j < cortexMeshNames.length; j++) {
@@ -442,29 +487,24 @@ var three_spatialView = function () {
                     }
                 }
             }
-
-            if (obj.roi) {
-                if (obj.roi.type == 'cortical') {
-                    obj.material.opacity = 1 - this.corticalTransparency;
-                }
-            }
         }
         for (var j = 0; j < cortexMeshNames.length; j++) {
             if (cortexMeshShow[j]) {
-                for (var i = this.cortexMeshes[j].length-1; i >= 0; i--) {
+                for (var i = this.cortexMeshes[j].length - 1; i >= 0; i--) {
                     this.scene.add(this.cortexMeshes[j][i]);
                     this.cortexMeshes[j].splice(i, 1);
                 }
             }
         }
 
-        console.log("after updating:");
-        console.log(this.scene.children);
         for (var i = scope.scene.children.length - 1; i >= 0 ; i--) {
             var obj = scope.scene.children[i];
             if (obj instanceof THREE.Mesh) {
                 if (obj.material instanceof THREE.ShaderMaterial) {
                     obj.material.uniforms.transExp.value = this.tranparency * 30;
+                }
+                else {
+                    obj.material.opacity = 1-this.tranparency;
                 }
             }
             if (obj.name.endsWith("_tract")) {
@@ -515,10 +555,12 @@ var three_spatialView = function () {
         if (event.button !== 0) return;
         if (!scope.eventInBox(event)) return;
         moved = false;
+        window.addEventListener('mouseup', onMouseUp, false);
     }
     function onMouseUp(event) {
+        window.removeEventListener('mouseup', onMouseUp, false);
         if (event.button !== 0) return;
-        if (!scope.eventInBox(event)) return;
+        //if (!scope.eventInBox(event)) return;
         if (scope.selectedObj !== undefined && !moved) {
             //scope.scene.remove(scope.selectedObj);
             if (scope.selectedObj.roi) {
@@ -531,6 +573,13 @@ var three_spatialView = function () {
             }
             roiView.update();
         }
+        if (moved) {
+            sortVertices();
+            moved = false;
+        }
+    }
+    function onMouseWheel(){
+            //scope.sortMeshVertices();
     }
     function buttonClickHandler(arg, event) {
         if (arg === 'up') {
@@ -554,9 +603,9 @@ var three_spatialView = function () {
             }
         }
     }
-    window.addEventListener('mousemove', onMouseMove, false);
     window.addEventListener('mousedown', onMouseDown, false);
-    window.addEventListener('mouseup', onMouseUp, false);
+    window.addEventListener('mousemove', onMouseMove, false);
+    window.addEventListener('mousewheel', onMouseWheel, false);
 }
 
 

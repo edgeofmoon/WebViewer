@@ -19,7 +19,11 @@ coretexMesh_material = new THREE.ShaderMaterial(
 
 coretexMesh_material2 = new THREE.MeshLambertMaterial(
     {
+        //opacity: 0.5,
         color: 0xffffff,
+        //transparent: true,
+        side: THREE.FrontSide,
+        vertexColors: THREE.FaceColors,
     });
 
 var three_cortexMesh = function (lfn, rfn, scene) {
@@ -34,6 +38,7 @@ var three_cortexMesh = function (lfn, rfn, scene) {
     else {
         alert('Unknown cortex mesh format!');
     }
+    var loaded = 0;
     loader.load(lfn, function (object) {
         object.traverse(function (child) {
             if (child instanceof THREE.Mesh) {
@@ -47,12 +52,16 @@ var three_cortexMesh = function (lfn, rfn, scene) {
                 child.geometry.computeFaceNormals();
                 child.geometry.computeVertexNormals();
                 // back to buffer geometry 
-                geometry = new THREE.BufferGeometry();
-                geometry.fromGeometry(child.geometry);
-                child.geometry.dispose();
-                child.geometry = geometry;
+                //geometry = new THREE.BufferGeometry();
+                //geometry.fromGeometry(child.geometry);
+                //child.geometry.dispose();
+                //child.geometry = geometry;
                 child.name = 'lh';
                 scene.add(child);
+                loaded++;
+                if (loaded == 2) {
+                    spatialView.sortMeshVertices();
+                }
             }
         });
     });
@@ -81,12 +90,16 @@ var three_cortexMesh = function (lfn, rfn, scene) {
                 child.geometry.computeFaceNormals();
                 child.geometry.computeVertexNormals();
                 // back to buffer geometry 
-                geometry = new THREE.BufferGeometry();
-                geometry.fromGeometry(child.geometry);
-                child.geometry.dispose();
-                child.geometry = geometry;
+                //geometry = new THREE.BufferGeometry();
+                //geometry.fromGeometry(child.geometry);
+                //child.geometry.dispose();
+                //child.geometry = geometry;
                 child.name = 'rh';
+                loaded++;
                 scene.add(child);
+                if (loaded == 2) {
+                    spatialView.sortMeshVertices();
+                }
             }
         });
     });

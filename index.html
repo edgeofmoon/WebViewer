@@ -183,6 +183,8 @@
                 gl_FragColor += vec4(specular,specular,specular,0);
                 float viewNormCos = abs(1.0 - abs(dot(transformedNormal,eyeDir)));
                 //gl_FragColor.a = transExp / 30.0;
+                //gl_FragColor.a = 1.0;
+                //gl_FragColor.rgb = vec3(1.0-viewNormCos,1.0-viewNormCos,1.0-viewNormCos);
                 gl_FragColor.a = pow(viewNormCos, transExp);
             }
         </script>
