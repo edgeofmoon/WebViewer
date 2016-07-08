@@ -208,8 +208,8 @@ three_dataLoader.loadCSVDatahandler = function (evt) {
             }
             // cortical roi
             else {
-                roiName = roiName.split('_')[0] + '_' + roiName.split('_')[1];
-                var meshName = findCorticalMeshName(roiName);
+                var clnRoiName = roiName.split('_')[0] + '_' + roiName.split('_')[1];
+                var meshName = findCorticalMeshName(clnRoiName);
                 var corticalRoi = new three_roi(-1);
                 corticalRoi.name = roiName;
                 corticalRoi.type = 'cortical';

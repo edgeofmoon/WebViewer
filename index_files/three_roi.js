@@ -167,27 +167,27 @@ three_roi.prototype.computeGeometry = function (callback) {
                     object.traverse(function (child) {
                         if (child instanceof THREE.Mesh) {
                             if (curGeo == undefined) {
-                                curGeo = new THREE.Geometry();
-                                curGeo.fromBufferGeometry(child.geometry);
-                                //curGeo = child.geometry;
+                                curGeo = child.geometry;
+                                //curGeo = new THREE.Geometry();
+                                //curGeo.fromBufferGeometry(child.geometry);
                                 child.geometry.dispose();
                                 child.material.dispose();
                             }
                             else {
-                                //curGeo.merge(child.geometry, child.matrix);
-                                var fltGeo = new THREE.Geometry();
-                                fltGeo.fromBufferGeometry(child.geometry);
-                                curGeo.merge(fltGeo);
-                                fltGeo.dispose();
+                                curGeo.merge(child.geometry);
+                                //var fltGeo = new THREE.Geometry();
+                                //fltGeo.fromBufferGeometry(child.geometry);
+                                //curGeo.merge(fltGeo);
+                                //fltGeo.dispose();
                                 child.geometry.dispose();
                                 child.material.dispose();
                             }
                             partsToLoad--;
                             if (0 == partsToLoad) {
-                                curGeo.mergeVertices();
-                                curGeo.computeFaceNormals();
-                                curGeo.computeVertexNormals();
-                                curGeo.verticesNeedUpdate = true;
+                                //curGeo.mergeVertices();
+                                //curGeo.computeFaceNormals();
+                                //curGeo.computeVertexNormals();
+                                //curGeo.verticesNeedUpdate = true;
                                 callback(curGeo);
                             }
                         }

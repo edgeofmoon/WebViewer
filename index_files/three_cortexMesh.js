@@ -13,7 +13,8 @@ coretexMesh_material = new THREE.ShaderMaterial(
         uniforms: coretexMesh_uniforms,
         vertexShader: coretexMesh_vertexShader,
         fragmentShader: coretexMesh_fragmentShader,
-        side: THREE.FrontSide,
+        //side: THREE.FrontSide,
+        side: THREE.DoubleSide,
         transparent: true,
     });
 
@@ -23,7 +24,7 @@ coretexMesh_material2 = new THREE.MeshLambertMaterial(
         color: 0xffffff,
         //transparent: true,
         side: THREE.FrontSide,
-        vertexColors: THREE.FaceColors,
+        //vertexColors: THREE.VertexColors,
     });
 
 var three_cortexMesh = function (lfn, rfn, scene) {
@@ -44,18 +45,24 @@ var three_cortexMesh = function (lfn, rfn, scene) {
             if (child instanceof THREE.Mesh) {
                 child.material.dispose();
                 child.material = coretexMesh_material;
-                var geometry = new THREE.Geometry();
-                geometry.fromBufferGeometry(child.geometry);
-                child.geometry.dispose();
-                child.geometry = geometry;
-                child.geometry.mergeVertices();
-                child.geometry.computeFaceNormals();
-                child.geometry.computeVertexNormals();
+
+                // to geometry
+                var info = renderer.info;
+                //var geometry = new THREE.Geometry();
+                //geometry.fromBufferGeometry(child.geometry);
+                //child.geometry.dispose();
+                //child.geometry = geometry;
+                //child.geometry.mergeVertices();
+                //child.geometry.computeFaceNormals();
+                //child.geometry.computeVertexNormals();
+
                 // back to buffer geometry 
                 //geometry = new THREE.BufferGeometry();
                 //geometry.fromGeometry(child.geometry);
                 //child.geometry.dispose();
                 //child.geometry = geometry;
+                //child.dynamic = true;
+                //child.geometry.dynamic = true;
                 child.name = 'lh';
                 scene.add(child);
                 loaded++;
@@ -82,18 +89,24 @@ var three_cortexMesh = function (lfn, rfn, scene) {
             if (child instanceof THREE.Mesh) {
                 child.material.dispose();
                 child.material = coretexMesh_material;
-                var geometry = new THREE.Geometry();
-                geometry.fromBufferGeometry(child.geometry);
-                child.geometry.dispose();
-                child.geometry = geometry;
-                child.geometry.mergeVertices();
-                child.geometry.computeFaceNormals();
-                child.geometry.computeVertexNormals();
+                
+                // to geometry
+                var info = renderer.info;
+                //var geometry = new THREE.Geometry();
+                //geometry.fromBufferGeometry(child.geometry);
+                //child.geometry.dispose();
+                //child.geometry = geometry;
+                //child.geometry.mergeVertices();
+                //child.geometry.computeFaceNormals();
+                //child.geometry.computeVertexNormals();
+
                 // back to buffer geometry 
                 //geometry = new THREE.BufferGeometry();
                 //geometry.fromGeometry(child.geometry);
                 //child.geometry.dispose();
                 //child.geometry = geometry;
+                //child.dynamic = true;
+                //child.geometry.dynamic = true;
                 child.name = 'rh';
                 loaded++;
                 scene.add(child);

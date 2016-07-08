@@ -77,7 +77,6 @@ var three_app = function (renderer) {
         renderer.render(scene, camera);
     }
     this.update = function () {
-        spatialView.controls.update();
 
     }
     function resize() {
@@ -121,7 +120,7 @@ var three_app = function (renderer) {
         spatialView.setViewport([0, 0, window.innerWidth, window.innerHeight]);
         //spatialView.addCortexMesh("data/lh.pial.obj", "data/rh.pial.obj");
         //spatialView.addCortexMesh("data/lh.trans.pial.obj", "data/rh.pial.obj");
-        spatialView.addCortexMesh("data/lh.trans.pial.obj", "data/rh.trans.pial.obj");
+        spatialView.addCortexMesh("data/lh.trans.normal.pial.obj", "data/rh.trans.normal.pial.obj");
         //spatialView.addCortexMesh("data/lh.pial.obj", "data/rh.pial.obj");
         //spatialView.addCortexMesh("data/lh.orig.obj", "data/rh.orig.obj");
         //spatialView.addMarchingCubesMesh(vol, 0.4);

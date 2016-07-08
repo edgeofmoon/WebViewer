@@ -3,6 +3,7 @@ var three_spatialView = function () {
     this.camera = new THREE.PerspectiveCamera(45, 0.3, 0.1, 20000);
     //this.controls = new three_orbitControls(this.camera);
     this.controls = new three_trackballControl(this.camera);
+    this.controls.staticMoving = true;
     //this.controls = new THREE.TrackballControls(this.camera);
     //this.controls = new THREE.OrbitControls(this.camera);
     this.viewbox = new THREE.Box2(new THREE.Vector2(0, 0),
@@ -40,7 +41,7 @@ var three_spatialView = function () {
     this.globalNormalization = true;
     this.stackerView = false;
     this.roiLinks = true;
-    this.inplaceCharts = true;
+
     // UI
     var gui = new dat.GUI({ autoPlace: false });
     gui.close();
@@ -103,6 +104,7 @@ var three_spatialView = function () {
         }
     }
     this.sortMeshes = function () {
+        if (!this.autoVerticesSort) return;
         var cortexMeshNames = ['lh', 'rh'];
         var matrix = this.camera.projectionMatrix.clone().multiply(this.camera.matrixWorldInverse);
         var corticalRoiMeshes = [];
@@ -127,16 +129,15 @@ var three_spatialView = function () {
         for (var i in corticalRoiMeshes) this.scene.add(corticalRoiMeshes[i]);
         for (var i in cortexMeshes) this.scene.add(cortexMeshes[i]);
     }
-    var f1 = gui.addFolder("Cortex Mesh");
+    var f1 = gui.addFolder("Spatial View");
     f1.add(this, 'showLeftMesh').name('Left hemisphere').onFinishChange(updateRender);
     f1.add(this, 'showRightMesh').name('Right hemisphere').onFinishChange(updateRender);
     f1.add(this, 'showAxis').name('Show axis').onFinishChange(toggleAxis);
     f1.add(this, 'showBoundary').name('Show boundary');
     f1.add(this, 'tranparency').min(0).max(1.0).name('Transparency').onChange(updateRender);
-    f1.add(this, 'autoVerticesSort').name('AutoVerticesSort').onChange(sortVertices);
-    f1.add(this, 'inplaceCharts').name('In place charts');
-    var f2 = gui.addFolder("Tractography Mesh");
-    f2.add(this, 'showTracts').name('Display with ROI');
+    //f1.add(this, 'autoVerticesSort').name('AutoVerticesSort').onChange(sortVertices);
+    var f2 = gui.addFolder("Chart View");
+    f2.add(this, 'showTracts').name('ROI tracts');
     f2.add(this, 'tractThreshold').min(0).max(1.0).name('Density threshold').onChange(updateRender);
     f2.add(this, 'globalNormalization').name('Global normalization').onChange(updateNormalization);
     f2.add(this, 'stackerView').name('Stacker view').onChange(updateStacker);
@@ -517,6 +518,7 @@ var three_spatialView = function () {
     }
     // render function
     this.render = function () {
+        this.controls.update();
         renderer.setViewport(this.viewbox.min.x, this.viewbox.min.y, this.viewbox.size().x, this.viewbox.size().y);
         renderer.setScissor(this.viewbox.min.x, this.viewbox.min.y, this.viewbox.size().x, this.viewbox.size().y);
 

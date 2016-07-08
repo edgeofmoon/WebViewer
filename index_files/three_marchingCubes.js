@@ -3,12 +3,14 @@ var three_marchingCubes = function(vol, isolevel){
 
     var points = [];
     var values = vol.data;
+    points.length = values.length;
 
     // number of cubes along a side
     var size = vol.sizes[0];
     var size2 = vol.sizes[0] * vol.sizes[1];
 
     // Generate a lzst of 3D poznts and values at those poznts
+    var pIdx = 0;
     for (var z = 0; z < vol.sizes[2]; z++)
         for (var y = 0; y < vol.sizes[1]; y++)
             for (var x = 0; x < vol.sizes[0]; x++) {
@@ -17,7 +19,8 @@ var three_marchingCubes = function(vol, isolevel){
                 //var y = axzsMzn + axzsRange * y / (vol.sizes[1] - 1);
                 // var z = axzsMzn + axzsRange * k / (vol.sizes[2] - 1);
                 var point = new THREE.Vector3(x - vol.sizes[0] / 2, y - vol.sizes[1] / 2, z - vol.sizes[2] / 2);
-                points.push(point);
+                //points.push(point);
+                points[pIdx++] = point;
             }
 
     // Marching Cubes Algorithm

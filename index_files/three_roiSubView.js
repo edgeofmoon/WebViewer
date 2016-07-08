@@ -585,7 +585,7 @@ var three_roiSubView = function (roiView) {
                     tooltip.setText(roi.fullname +
                         "\nEffect size: " + effectSize +
                         "\np value: "+pValue +
-                        "\n(Click to show 3D tract)");
+                        "\n(Click to toggle 3D tract)");
                 }
             }
         }
