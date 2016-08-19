@@ -211,11 +211,11 @@ function getProjection(worldCoord, worldMatrix, camera, viewbox) {
     return pixel;
 }
 
-function sortObjectFacesByDepths(obj, matrix) {
-    if (obj.geometry instanceof THREE.Geometry) {
+function sortGeometryFacesByDepths(geometry, matrix) {
+    if (geometry instanceof THREE.Geometry) {
         var faceDepths = new Map();
-        for (var i = 0; i < obj.geometry.faces.length; i++) {
-            var face = obj.geometry.faces[i];
+        for (var i = 0; i < geometry.faces.length; i++) {
+            var face = geometry.faces[i];
             /*
             var v0 = obj.geometry.vertices[face.a];
             var v1 = obj.geometry.vertices[face.b];
@@ -225,7 +225,7 @@ function sortObjectFacesByDepths(obj, matrix) {
             var vcNds = vc.applyMatrix4(matrix);
             faceDepths.set(face, vcNds.x * vcNds.x + vcNds.y * vcNds.y + vcNds.z * vcNds.z);
             */
-            var v0 = obj.geometry.vertices[face.a];
+            var v0 = geometry.vertices[face.a];
             var v0Proj = v0.clone().applyMatrix4(matrix);
             faceDepths.set(face, v0Proj.z);
         }
@@ -234,19 +234,26 @@ function sortObjectFacesByDepths(obj, matrix) {
             var depth1 = faceDepths.get(face1);
             return depth0 - depth1;
         }
-        obj.geometry.faces.sort(sortFace);
+        geometry.faces.sort(sortFace);
         //obj.geometry.faces.length = Math.round(obj.geometry.faces.length/2);
         //obj.geometry.verticesNeedUpdate = true;
         //obj.geometry.elementsNeedUpdate = true;
         //return;
-        var oldGeometry = obj.geometry;
-        obj.geometry = new THREE.Geometry();
-        obj.geometry.faces = oldGeometry.faces;
-        obj.geometry.vertices = oldGeometry.vertices;
+        var oldGeometry = geometry;
+        geometry = new THREE.Geometry();
+        geometry.faces = oldGeometry.faces;
+        geometry.vertices = oldGeometry.vertices;
         oldGeometry.dispose();
         console.log("sorted");
         //return;
-        obj.geometry.colorsNeedUpdate = true;
+        geometry.colorsNeedUpdate = true;
+    }
+}
+
+function sortObjectFacesByDepths(obj, matrix) {
+    if (obj.geometry instanceof THREE.Geometry) {
+        sortGeometryFacesByDepths(obj.geometry, matrix);
+        return;
         for (var i = 0; i < obj.geometry.faces.length; i++) {
             var face = obj.geometry.faces[i];
             var c = three_colorTable.divergingColor(i / 2 - obj.geometry.faces.length / 2,
@@ -312,6 +319,62 @@ function makeBoundaryLineSegmentsGeometry(vertices, faces) {
         geometry.vertices.push(vertices[edges[i][0]].clone());
         geometry.vertices.push(vertices[edges[i][1]].clone());
     }
+    return geometry;
+}
+
+function makeBoundaryBandGeometry(vertices, faces, bandWidthScale) {
+    var count = new Map();
+    var maxIdx = 0;
+    for (var i = 0; i < faces.length; i++) {
+        var t0 = faces[i].a;
+        var t1 = faces[i].b;
+        var t2 = faces[i].c;
+        var idxs = [t0, t1, t2];
+        idxs.sort();
+        var edges = [[idxs[0], idxs[1]], [idxs[1], idxs[2]], [idxs[0], idxs[2]]];
+        for (var j = 0; j < 3; j++) {
+            var edgeString = edges[j][0] + '_' + edges[j][1];
+            if (!count.has(edgeString)) {
+                count[edgeString] = faces[i];
+                count.set(edgeString, faces[i]);
+            }
+            else {
+                count[edgeString] = 2;
+                count.set(edgeString, 2);
+            }
+        }
+    }
+
+    var bandSegments = [];
+    var bandNormals = [];
+    count.forEach(function (value, key, map) {
+        if (value instanceof THREE.Face3) {
+            var sptStr = key.split('_');
+            var edge = [Number(sptStr[0]), Number(sptStr[1])];
+            bandSegments.push(vertices[edge[0]], vertices[edge[1]]);
+            bandNormals.push(value.normal);
+        }
+    });
+    var bandHalfWidth = 0.33 * bandWidthScale *5;
+    var geometry = new THREE.Geometry();
+    for (var i = 0; i < bandSegments.length / 2; i++) {
+        var a = bandSegments[i * 2];
+        var b = bandSegments[i * 2 + 1];
+        var normal = bandNormals[i];
+        var tangent = new THREE.Vector3();
+        tangent.subVectors(a, b).normalize();
+        var bidir = new THREE.Vector3();
+        bidir.crossVectors(tangent, normal).normalize();
+        var a0 = a.clone().addScaledVector(bidir, bandHalfWidth).addScaledVector(normal, 0.1);
+        var a1 = a.clone().addScaledVector(bidir, -bandHalfWidth).addScaledVector(normal, 0.1);
+        var b0 = b.clone().addScaledVector(bidir, bandHalfWidth).addScaledVector(normal, 0.1);
+        var b1 = b.clone().addScaledVector(bidir, -bandHalfWidth).addScaledVector(normal, 0.1);
+        var face0 = new THREE.Face3(i * 4, i * 4 + 3, i * 4 + 2, normal.clone());
+        var face1 = new THREE.Face3(i * 4, i * 4 + 1, i * 4 + 3, normal.clone());
+        geometry.vertices.push(a0, a1, b0, b1);
+        geometry.faces.push(face0, face1);
+    }
+    //geometry.computeFaceNormals();
     return geometry;
 }
 
@@ -514,21 +577,6 @@ function ArrayToCohortCompData(table) {
         alert('Cannot Locate Roi Row!');
         return;
     }
-    var rois = [];
-    var roiCols = [];
-    // skip the first column
-    for (var i = 4; i < table[roiNameRow].length; i++) {
-        var str = table[roiNameRow][i];
-        var roi = getRoiByName(str);
-        if (roi) {
-            rois.push(roi);
-            roiCols.push(i);
-        }
-    }
-    if (roiCols.length === 0) {
-        alert('Cannot Locate Rois!');
-        return;
-    }
 
     // load subject values
     var dxRow = -1;
@@ -538,24 +586,101 @@ function ArrayToCohortCompData(table) {
             break;
         }
     }
-    if (dxRow == -1) {
-        alert('Cannot Locate Diagnosis!');
+    var roiStartColumn = 1;
+    if (dxRow >= 0) {
+        roiStartColumn = 3;
+    }
+    var rois = [];
+    var roiCols = [];
+    // skip the first column
+    for (var i = roiStartColumn; i < table[roiNameRow].length; i++) {
+        var roiName = table[roiNameRow][i];
+        var roi = getRoiByName(roiName);
+        // sub-cortical roi
+        if (roi) {
+            rois.push(roi);
+            roiCols.push(i);
+        }
+            // cortical roi
+        else {
+            if (roiName.indexOf("_") >= 0 && roiName.indexOf("ave")<0) {
+                var clnRoiName = roiName.split('_')[0] + '_' + roiName.split('_')[1];
+                var meshName = findCorticalMeshName(clnRoiName);
+                var corticalRoi = new three_roi(-1);
+                corticalRoi.name = roiName;
+                corticalRoi.type = 'cortical';
+                corticalRoi.meshFns.push(meshName);
+                rois.push(corticalRoi);
+                roiCols.push(i);
+                globalRois.push(corticalRoi);
+            }
+            else if(roiName.indexOf("ave")>=0){
+                var clnRoiName = roiName.replace("_ave", '').toLowerCase();
+                var meshNameLh = 'data/pial_DK_trans_normal/'
+                    + 'lh'
+                    + '.pial.DK.' + clnRoiName + '_trans_normal.obj';
+                var meshNameRh = 'data/pial_DK_trans_normal/'
+                    + 'rh'
+                    + '.pial.DK.' + clnRoiName + '_trans_normal.obj';
+                var corticalRoi = new three_roi(-1);
+                corticalRoi.name = roiName;
+                corticalRoi.type = 'cortical';
+                corticalRoi.meshFns.push(meshNameLh);
+                corticalRoi.meshFns.push(meshNameRh);
+                rois.push(corticalRoi);
+                roiCols.push(i);
+                globalRois.push(corticalRoi);
+            }
+
+            // hot fix
+            else if (roiName == 'LSurfArea') {
+                var corticalRoi = new three_roi(-1);
+                corticalRoi.name = roiName;
+                corticalRoi.type = 'cortical';
+                corticalRoi.meshFns.push('data/lh.trans.normal.pial.obj');
+                rois.push(corticalRoi);
+                roiCols.push(i);
+                globalRois.push(corticalRoi);
+            }
+            else if (roiName == 'RSurfArea') {
+                var corticalRoi = new three_roi(-1);
+                corticalRoi.name = roiName;
+                corticalRoi.type = 'cortical';
+                corticalRoi.meshFns.push('data/rh.trans.normal.pial.obj');
+                rois.push(corticalRoi);
+                roiCols.push(i);
+                globalRois.push(corticalRoi);
+            }
+        }
+        //else {
+        //    alert('Cannot Locate Roi: ' + table[roiNameRow][i]);
+        //}
+    }
+    if (roiCols.length === 0) {
+        alert('Cannot Locate Rois!');
         return;
     }
 
+
     var ctrlRows = [];
     var disdRows = [];
-    for (var i = 0; i < table.length; i++) {
-        if (table[i][dxRow] == 'Control') {
-            ctrlRows.push(i);
-        }
-        else if (table[i][dxRow] == 'SCZ') {
-            disdRows.push(i);
-        }
+
+    if (dxRow == -1) {
+        console.log('No subjects detected.');
     }
-    if (ctrlRows.length <= 0 || disdRows.length <= 0) {
-        alert('Both Control and Diseased Must Have Subjects!');
-        return;
+    else {
+        for (var i = 0; i < table.length; i++) {
+            if (table[i][dxRow] == 'Control') {
+                ctrlRows.push(i);
+            }
+            else if (table[i][dxRow] == 'SCZ') {
+                disdRows.push(i);
+            }
+        }
+        if (ctrlRows.length <= 0 || disdRows.length <= 0) {
+            alert('Both Control and Diseased Must Have Subjects!');
+            return;
+        }
     }
 
     // control cohort
@@ -589,7 +714,7 @@ function ArrayToCohortCompData(table) {
     // find pValue and effectSize col
     var pValueRow = -1;
     for (var i = 0; i < table.length; i++) {
-        if (table[i][0] == 'pValue') {
+        if (table[i][0] == 'pValue' || table[i][0] == 'meta_pval') {
             pValueRow = i;
             break;
         }
@@ -600,7 +725,7 @@ function ArrayToCohortCompData(table) {
     }
     var effectSizeRow = -1;
     for (var i = 0; i < table.length; i++) {
-        if (table[i][0] == 'effectSize') {
+        if (table[i][0] == 'meta_d' || table[i][0] == 'effectSize') {
             effectSizeRow = i;
             break;
         }
@@ -617,6 +742,7 @@ function ArrayToCohortCompData(table) {
         compStats.stats[0] = ctrlCohortRoiData.stats[i];
         compStats.stats[1] = disdCohortRoiData.stats[i];
         compStats.pValue = Number(table[pValueRow][roiCol]);
+        //compStats.effectSize = Math.abs(Number(table[effectSizeRow][roiCol]));
         compStats.effectSize = Number(table[effectSizeRow][roiCol]);
         compStats.final = true;
         cohortRoiCompStats.push(compStats);
@@ -640,6 +766,7 @@ function loadPreviewCVSData(fn) {
         var table = CSVToArray(response);
         var cohortCompData = ArrayToCohortCompData(table);
         cohortCompData.name = leafname;
+        console.log(cohortCompData.rois.length, ' ROIs loaded from CSV file.');
         var newSubView = roiView.addSubView(cohortCompData.rois);
         newSubView.cohortCompData = cohortCompData;
         newSubView.init();
@@ -892,7 +1019,7 @@ function loadMeshRoiSpecs(meshSpecsFile, roiSpecFile, callback) {
         partsLoaded++;
         if (partsLoaded === 2) {
             var rois = makeRois();
-            callback(rois);
+            //callback(rois);
         }
     }, false);
     client2.send();
@@ -988,6 +1115,7 @@ function genTextQuad(text, boarder, font, pixelSize, alignHorizontal, alignVerti
     //var canvas = genTextTexture.canvas || (genTextTexture.canvas = document.createElement("canvas"));
     var canvas = document.createElement("canvas");
     var context = canvas.getContext("2d");
+    canvas.style.backgroundColor = 'rgba(0, 0, 0, 1)';
     var textHeight = 20;
     rotation = rotation ? rotation : 0;
     if (font) {
@@ -1008,7 +1136,7 @@ function genTextQuad(text, boarder, font, pixelSize, alignHorizontal, alignVerti
         width = Math.max(metrics.width, width);
     }
     var height = textHeight * lines.length;
-    boarder = boarder ? boarder : 0;
+    boarder = boarder ? boarder : 2;
     var tw = 2;
     var th = 2;
     while (tw < width + boarder * 2) tw *= 2;
@@ -1017,8 +1145,12 @@ function genTextQuad(text, boarder, font, pixelSize, alignHorizontal, alignVerti
     canvas.height = th;
     context.textAlign = "left";
     context.textBaseline = "top";
+    //context.fillStyle = "black"; // background color
+    //context.fillStyle = "white"; // background color
     context.clearRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = "rgba(0,0,0,1)"; // text color
+    //context.fillRect(0, 0, canvas.width, canvas.height);
+    //context.fillStyle = "white"; // text color
+    context.fillStyle = "black"; // text color
     context.font = font ? font : "Bold 20px Arial";
     //context.fillRect(0, 0, canvas.width, canvas.height);
     for (var i = 0; i < lines.length; i++) {
@@ -1095,5 +1227,124 @@ function genTextQuad(text, boarder, font, pixelSize, alignHorizontal, alignVerti
         //color: 0x000000,
     });
     var mesh = new THREE.Mesh(quad_geo, quad_mat);
+    return mesh;
+}
+
+function genCollectiveMesh(geometries, values) {
+    var vertexShader = document.getElementById('vertexShader2').text;
+    var fragmentShader = document.getElementById('fragmentShader2').text;
+    var vertexAttributes = [];
+    var shaderUniforms = {
+        transExp: { type: "f", value: 5.0, min: 0, max: 100 },
+    };
+    var material = new THREE.ShaderMaterial({
+        uniforms: shaderUniforms,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+        transparent: true,
+        side: THREE.FrontSide,
+        depthWrite: true
+    });
+    var geometry = new THREE.Geometry();
+    var vertices = geometry.vertices;
+    var faces = geometry.faces;
+    var idxOffset = 0;
+    for (var i = 0; i < geometries.length; i++) {
+        var cg = geometries[i];
+        var val = values[i];
+        for (var j = 0; j < cg.vertices.length; j++) {
+            vertices.push(cg.vertices[j]);
+        }
+        for (var j = 0; j < cg.faces.length; j++) {
+            var face = cg.faces[j];
+            face.a += idxOffset;
+            face.b += idxOffset;
+            face.c += idxOffset;
+            faces.push(face);
+        }
+        // stupid three js wont update attributes with idxed faces
+        for (var j = 0; j < cg.faces.length*3; j++) {
+            vertexAttributes.push(val);
+        }
+        idxOffset = vertices.length;
+    }
+    var matrix = spatialView.camera.projectionMatrix.clone()
+        .multiply(spatialView.camera.matrixWorldInverse);
+    sortGeometryFacesByDepths(geometry, matrix);
+    var bufferGeometry = new THREE.BufferGeometry();
+    bufferGeometry.fromGeometry(geometry);
+    geometry.dispose();
+    bufferGeometry.addAttribute('textureScale',
+        new THREE.BufferAttribute(new Float32Array(vertexAttributes), 1));
+    var mesh = new THREE.Mesh(bufferGeometry, material);
+    return mesh;
+}
+
+function genTexLengend() {
+    var start = [-65, -107];
+    var size = [15, 15];
+    var positions = [];
+    var normals = [];
+    var scales = [];
+    var values = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55];
+    for (var i = 0; i < values.length; i++) {
+        positions.push(start[0] + size[0] * i, start[1], 0,
+            start[0] + size[0] * (i + 1), start[1], 0,
+            start[0] + size[0] * (i + 1), start[1] + size[1], 0,
+
+            start[0] + size[0] * i, start[1], 0,
+            start[0] + size[0] * i, start[1] + size[1], 0,
+            start[0] + size[0] * (i + 1), start[1] + size[1], 0);
+        normals.push(0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0);
+        
+        var freq = Math.abs(values[i]);
+        scales.push(freq, freq, freq, freq, freq, freq);
+    }
+    var bufferGeometry = new THREE.BufferGeometry();
+    bufferGeometry.addAttribute('position',
+        new THREE.BufferAttribute(new Float32Array(positions), 3));
+    bufferGeometry.addAttribute('normal',
+        new THREE.BufferAttribute(new Float32Array(normals), 3));
+    bufferGeometry.addAttribute('textureScale',
+        new THREE.BufferAttribute(new Float32Array(scales), 1));
+
+
+    var vertexShader = document.getElementById('vertexShader2').text;
+    var fragmentShader = document.getElementById('fragmentShader2').text;
+    var shaderUniforms = {
+        transExp: { type: "f", value: 5.0, min: 0, max: 100 },
+    };
+    var material = new THREE.ShaderMaterial({
+        uniforms: shaderUniforms,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthWrite: true
+    });
+
+    var smaterial = new THREE.MeshBasicMaterial({
+        color: 0xffff00,
+        side: THREE.DoubleSide,
+    });
+
+    var mesh = new THREE.Mesh(bufferGeometry, material);
+    
+    var viewBox = spatialView.viewbox;
+    pixelSize = [600.0 / viewBox.size().x, 600.0 / viewBox.size().x];
+    for (var i = 0; i < values.length; i++) {
+        var textMesh = genTextQuad(values[i].toString(),
+                        0, "10px Arial", pixelSize, 'middle', 'top');
+        textMesh.translateX(start[0] + size[0] * (i+0.5), start[1]);
+        textMesh.translateY(start[1]);
+        textMesh.frustumCulled = false;
+        mesh.add(textMesh);
+    }
+
     return mesh;
 }

@@ -168,12 +168,15 @@ three_roi.prototype.computeGeometry = function (callback) {
                         if (child instanceof THREE.Mesh) {
                             if (curGeo == undefined) {
                                 curGeo = child.geometry;
-                                //curGeo = new THREE.Geometry();
-                                //curGeo.fromBufferGeometry(child.geometry);
+                                curGeo = new THREE.Geometry();
+                                curGeo.fromBufferGeometry(child.geometry);
                                 child.geometry.dispose();
                                 child.material.dispose();
                             }
                             else {
+                                // has to use geometry
+                                // because buffer geometry cannot expand
+                                /*
                                 curGeo.merge(child.geometry);
                                 //var fltGeo = new THREE.Geometry();
                                 //fltGeo.fromBufferGeometry(child.geometry);
@@ -181,13 +184,25 @@ three_roi.prototype.computeGeometry = function (callback) {
                                 //fltGeo.dispose();
                                 child.geometry.dispose();
                                 child.material.dispose();
+                                */
+                                var geometry = new THREE.Geometry();
+                                geometry.fromBufferGeometry(child.geometry);
+                                child.geometry.dispose();
+                                child.material.dispose();
+                                if (!(curGeo instanceof THREE.Geometry)) {
+                                    var curGeo2 = new THREE.Geometry();
+                                    curGeo2.fromBufferGeometry(curGeo);
+                                    curGeo.dispose();
+                                    curGeo = curGeo2;
+                                }
+                                curGeo.merge(geometry);
                             }
                             partsToLoad--;
                             if (0 == partsToLoad) {
-                                //curGeo.mergeVertices();
-                                //curGeo.computeFaceNormals();
+                                curGeo.mergeVertices();
+                                curGeo.computeFaceNormals();
                                 //curGeo.computeVertexNormals();
-                                //curGeo.verticesNeedUpdate = true;
+                                curGeo.verticesNeedUpdate = true;
                                 callback(curGeo);
                             }
                         }

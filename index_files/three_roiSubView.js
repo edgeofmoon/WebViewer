@@ -83,6 +83,7 @@ var three_roiSubView = function (roiView) {
     var sceneDrag_accOffset = new THREE.Vector2(0, 0);
     var sceneDrag_curOffset = new THREE.Vector2(0, 0);
 
+    this.enabled = true;
     /************** End of Variable Definitions **********************/
 
     
@@ -106,6 +107,7 @@ var three_roiSubView = function (roiView) {
         statsIndex = sidx;
     }
     this.update = function () {
+        if (!this.enabled) return;
         var needQuad = false;
         for (var i = 0; i < this.getRois().length; i++) {
             if (this.cohortCompData.cohortRoiDataArray[0].stats[0].subjectMeans.length !== 0) {
@@ -113,6 +115,8 @@ var three_roiSubView = function (roiView) {
                 break;
             }
         }
+        this.roiBoxLayout.roiBox_width =
+            this.roiBoxLayout.roiBox_widthBasePixel / this.getViewbox().size().x;
         this.roiBoxLayout.setQuadNeed(needQuad);
         this.clear();
         this.drawDummy();
@@ -168,9 +172,22 @@ var three_roiSubView = function (roiView) {
             }
         }
     }
+    this.enable = function(){
+        this.enabled = true;
+    }
+    this.disable = function(){
+        this.enabled = false;
+    }
     this.setViewbox = function (viewbox) {
         this.viewbox = viewbox;
-        this.update();
+        this.viewbox.min.x += 10;
+        if (this.viewbox.size().x > 100 && this.viewbox.size().y > 100) {
+            this.enable();
+            this.update();
+        }
+        else {
+            this.disable();
+        }
     }
     this.updateViewbox = function (idx, totalInView) {
         this.index = idx;
@@ -223,6 +240,7 @@ var three_roiSubView = function (roiView) {
     }
     // render function
     this.render = function () {
+        if (!this.enabled) return;
         var theViewBox = this.getViewbox();
         if (drag_onDrag) {
             this.update();
@@ -340,7 +358,7 @@ var three_roiSubView = function (roiView) {
                 var statsButton = new three_ui_textBox(cohortUiPanel,
                     this.cohortCompData.getStatsName(statsIndex), new THREE.Color(0, 0, 0),
                     buttonClickHandler, "stats_next");
-                statsButton.setTooltip('Switch Statistc Display');
+                statsButton.setTooltip('Switch Statistics Display');
                 statsButton.cursorStyle = 'pointer';
             }
             cohortUiPanel.setFromViewbox(this.getViewbox(), ui_panel_position_topLeft);
@@ -522,6 +540,7 @@ var three_roiSubView = function (roiView) {
     var scope = this;
     // event handlers
     this.onMouseMove = function (event) {
+        if (!this.enabled) return;
         if (uiPanel !== undefined) {
             uiPanel.onMouseMove(event);
         }
@@ -582,7 +601,8 @@ var three_roiSubView = function (roiView) {
                     var idx = this.cohortCompData.rois.indexOf(roi);
                     var effectSize = this.cohortCompData.cohortRoiCompStats[idx].effectSize;
                     var pValue = this.cohortCompData.cohortRoiCompStats[idx].pValue;
-                    tooltip.setText(roi.fullname +
+                    var name = roi.fullname ? roi.fullname : roi.name;
+                    tooltip.setText(name +
                         "\nEffect size: " + effectSize +
                         "\np value: "+pValue +
                         "\n(Click to toggle 3D tract)");
@@ -591,7 +611,8 @@ var three_roiSubView = function (roiView) {
         }
     }
 
-    this.onMouseWheel = function(event) {
+    this.onMouseWheel = function (event) {
+        if (!this.enabled) return;
 
         var coord = eventCoord(event);
         if (!scope.viewbox.containsPoint(coord)) {
@@ -605,12 +626,10 @@ var three_roiSubView = function (roiView) {
         if (event.wheelDelta) {
 
             if (event.wheelDelta > 0) {
-                scope.roiBoxLayout.roiBox_width *= 1.1;
-                scope.roiBoxLayout.roiBox_hideWidth *= 1.1;
+                scope.roiBoxLayout.roiBox_widthBasePixel *= 1.1;
             }
             else {
-                scope.roiBoxLayout.roiBox_width /= 1.1;
-                scope.roiBoxLayout.roiBox_hideWidth /= 1.1;
+                scope.roiBoxLayout.roiBox_widthBasePixel /= 1.1;
             }
             scope.update();
             roiView.updateRoiViewLinks();
@@ -625,6 +644,7 @@ var three_roiSubView = function (roiView) {
     }
 
     this.onMouseDown = function (event) {
+        if (!this.enabled) return;
         if (event.button !== 0) return;
         var coord = eventCoord(event);
         if (scope.viewbox.containsPoint(coord) && scope.getRois().length === 0) {
@@ -670,6 +690,7 @@ var three_roiSubView = function (roiView) {
     }
 
     this.onMouseUp = function (event) {
+        if (!this.enabled) return;
         if (drag_onDrag) {
             drag_onDrag = false;
             scope.update();
@@ -688,10 +709,75 @@ var three_roiSubView = function (roiView) {
             else {
                 var coord = eventCoord(event);
                 if (spatialView.viewbox.containsPoint(coord)) {
-                    if (inplaceCharts.cohortCompDatasets.indexOf(this.cohortCompData) < 0) {
-                        inplaceCharts.cohortCompDatasets.push(this.cohortCompData);
+                    // tmp removal for gen pics
+                    if (this.getRois()[0].type !== 'cortical') {
+                        // add all rois to spatial view first
+                        var rois = this.getRois();
+                        for (var i = 0; i < rois.length; i++) {
+                            var roi = rois[i];
+                            var idx = scope.getRois().indexOf(roi);
+                            var color = scope.roiBoxLayout.colorAt(idx);
+                            var statValue = this.cohortCompData.cohortRoiCompStats[idx].getStats(this.statsIndex);
+                            spatialView.addRoi(roi, color, statValue);
+                        }
+                        if (inplaceCharts.cohortCompDatasets.indexOf(this.cohortCompData) < 0) {
+                            inplaceCharts.cohortCompDatasets.push(this.cohortCompData);
+                        }
                     }
-                    //roiView.removeSubView(this);
+                    else {
+                        var rois = this.getRois();
+                        for (var i = 0; i < rois.length; i++) {
+                            var roi = rois[i];
+                            var idx = scope.getRois().indexOf(roi);
+                            var statValue = this.cohortCompData.cohortRoiCompStats[idx].getStats(1);
+
+                            var color = three_colorTable.heatedBodyColor(Math.abs(statValue), 0.556);
+                            spatialView.addRoi(roi, color, statValue);
+                        }
+                        if (inplaceCharts.cohortCompDatasets.indexOf(this.cohortCompData) < 0) {
+                            inplaceCharts.cohortCompDatasets.push(this.cohortCompData);
+                        }
+                        //roiView.removeSubView(this);
+                        /*
+                        var geos = [];
+                        var vals = [];
+                        var colors = [];
+                        var rois = this.getRois();
+                        var toLoad = rois.length;
+                        for (var i = 0; i < rois.length; i++) {
+                            var roi = rois[i];
+                            var idx = scope.getRois().indexOf(roi);
+                            colors.push(roi.color);
+                            var statValue = this.cohortCompData.cohortRoiCompStats[idx].getStats(this.statsIndex);
+                            vals[i] = Math.sqrt(Math.abs(statValue)) + 0.1;
+                            (function (idx) {
+                                roi.computeGeometry(function callBack(geometry) {
+                                    if (spatialView.showBoundary) {
+                                        //var lineSegmentGeometry = makeBoundaryLineSegmentsGeometry(geometry.vertices, geometry.faces);
+                                        //var lineMaterial = new THREE.LineBasicMaterial({
+                                        //    color: 0xff0000
+                                        //});
+                                        //var lineSegments = new THREE.LineSegments(lineSegmentGeometry, lineMaterial);
+                                        //spatialView.scene.add(lineSegments);
+                                        var bandGeometry = makeBoundaryBandGeometry(geometry.vertices, geometry.faces, Math.abs(statValue));
+                                        //var bandMaterial = new THREE.MeshLambertMaterial();
+                                        var bandMaterial = new THREE.MeshBasicMaterial();
+                                        bandMaterial.color = colors[idx];
+                                        var band = new THREE.Mesh(bandGeometry, bandMaterial);
+                                        spatialView.scene.add(band);
+
+                                    }
+                                    geos[idx] = geometry;
+                                    toLoad--;
+                                    if (toLoad == 0) {
+                                        var mesh = genCollectiveMesh(geos, vals);
+                                        mesh.roi = rois[0];
+                                        spatialView.scene.add(mesh);
+                                    }
+                                });
+                            }(i));
+                        }*/
+                    }
                 }
             }
             roiView.updateRoiViewLinks();
@@ -727,6 +813,7 @@ var three_roiSubView = function (roiView) {
             cohortCompData2.sortOption = scope.cohortCompData.sortOption;
     
             var newSubView2 = roiView.addSubView(cohortCompData2.rois);
+            roiView.getLegendManager().cohortCompDatasets.push(cohortCompData2);
             newSubView2.cohortCompData = cohortCompData2;
             newSubView2.init();
             newSubView2.setStatsIndex(statsIndex);
@@ -774,6 +861,8 @@ var three_roiSubView = function (roiView) {
         else if (arg === 'delete') {
             scope.clear();
             roiView.removeSubView(scope);
+            var idx = roiView.getLegendManager().cohortCompDatasets.indexOf(scope.cohortCompData);
+            roiView.getLegendManager().cohortCompDatasets.splice(idx, 1);
             //roiView.updateRoiViewLinks();
             roiView.update();
         }

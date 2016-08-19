@@ -54,14 +54,16 @@ three_ui_button_image_loader.load('images/dist.png', function (texture) {
         updateViewUIs();
     }
 });
-three_ui_button_image_loader.load('images/button.png', function (texture) {
+//three_ui_button_image_loader.load('images/button.png', function (texture) {
+three_ui_button_image_loader.load('images/gray12.png', function (texture) {
     three_ui_button_bkgd_tex = texture;
     three_ui_button_icon_nLoad++;
     if (three_ui_button_icon_nLoad === three_ui_button_icon_total) {
         updateViewUIs();
     }
 });
-three_ui_button_image_loader.load('images/button2.png', function (texture) {
+//three_ui_button_image_loader.load('images/button2.png', function (texture) {
+three_ui_button_image_loader.load('images/gray25.png', function (texture) {
     three_ui_button_bkgd_tex2 = texture;
     three_ui_button_icon_nLoad++;
     if (three_ui_button_icon_nLoad === three_ui_button_icon_total) {

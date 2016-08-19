@@ -6,3 +6,19 @@ PLD	Pallidum	:	17	29
 PTM	Putamen	:	18	30
 TLM	Thalamus	:	19	31
 LV	Lateral Ventricle	:	16	28
+Laccumb	Left-Accumbens-area	:	9
+Lamyg	Left-Amygdala	:	10
+Lcaud	Left-Caudate	:	11
+Lhippo	Left-Hippocampus	:	14
+LLatVent	Left-Lateral-Ventricle	:	16
+Lpal	Left-Pallidum	:	17
+Lput	Left-Putamen	:	18
+Lthal	Left-Thalamus	:	19
+Raccumb	Right-Accumbens	:	21
+Ramyg	Right-Amygdala	:	22
+Rcaud	Right-Caudate	:	23
+Rhippo	Right-Hippocampus	:	26
+RLatVent	Right-Lateral-Ventricle	:	28
+Rpal	Right-Pallidum	:	29
+Rput	Right-Putamen	:	30
+Rthal	Right-Thalamus	:	31

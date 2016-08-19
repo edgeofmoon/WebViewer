@@ -212,7 +212,11 @@ var three_roiView = function () {
         }
         this.updateRoiViewLinks();
     }
-
+    this.removeAllSubViews = function () {
+        this.subViews.length = 0;
+        this.getLegendManager().cohortCompDatasets.length = 0;
+        this.update();
+    }
     var scope = this;
 
     function onMouseMove(event) {

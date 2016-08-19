@@ -1,0 +1,442 @@
+.style {
+    padding: 4px;
+}
+.paragraph_style {
+    color: rgb(255, 255, 255);
+    font-family: 'Arial-BoldMT', 'Arial', sans-serif;
+    font-size: 28px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 32px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: center;
+    text-decoration: none;
+    text-indent: 0px;
+    text-transform: none;
+}
+.paragraph_style_1 {
+    color: rgb(240, 251, 0);
+    font-family: 'ArialMT', 'Arial', sans-serif;
+    font-size: 16px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 21px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0px;
+    text-transform: none;
+}
+.style_1 {
+    font-family: 'ArialMT', 'Arial', sans-serif;
+    font-size: 19px;
+    font-stretch: normal;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 22px;
+}
+.paragraph_style_2 {
+    color: rgb(240, 251, 0);
+    font-family: 'ArialMT', 'Arial', sans-serif;
+    font-size: 10px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 21px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0px;
+    text-transform: none;
+}
+.style_2 {
+    color: rgb(201, 201, 201);
+    font-family: 'ArialMT', 'Arial', sans-serif;
+    font-size: 13px;
+    font-stretch: normal;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 21px;
+    opacity: 1.00;
+}
+.style_3 {
+    font-family: 'ArialMT', 'Arial', sans-serif;
+    font-size: 13px;
+    font-stretch: normal;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 21px;
+}
+.paragraph_style_3 {
+    color: rgb(146, 146, 146);
+    font-family: 'Arial-ItalicMT', 'Arial', sans-serif;
+    font-size: 9px;
+    font-stretch: normal;
+    font-style: italic;
+    font-variant: normal;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 21px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0px;
+    text-transform: none;
+}
+.style_SkipStroke_2 {
+    background: transparent;
+    opacity: 1.00;
+}
+.style_SkipStroke {
+    background: transparent;
+    opacity: 1.00;
+}
+.style_SkipStroke_1 {
+    background: transparent;
+    opacity: 1.00;
+}
+.style_SkipStroke_3 {
+    background: transparent;
+    opacity: 1.00;
+}
+.style_SkipStroke_4 {
+    background: rgb(82, 128, 255);
+    opacity: 1.00;
+}
+.style_SkipStroke_5 {
+    background: rgb(82, 128, 255);
+    opacity: 1.00;
+}
+.style_4 {
+    font-family: 'Arial-ItalicMT', 'Arial', sans-serif;
+    font-size: 13px;
+    font-stretch: normal;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 21px;
+}
+.style_5 {
+    font-family: 'Arial-ItalicMT', 'Arial', sans-serif;
+    font-size: 14px;
+    font-stretch: normal;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 21px;
+}
+.style_External_659_170 {
+    position: relative;
+}
+.style_External_609_91 {
+    position: relative;
+}
+.style_External_638_129 {
+    position: relative;
+}
+.Body {
+    color: rgb(255, 255, 255);
+    font-family: 'ArialMT', 'Arial', sans-serif;
+    font-size: 15px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 20px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0px;
+    text-transform: none;
+}
+.Free_Form {
+    color: rgb(255, 255, 255);
+    font-family: 'ArialMT', 'Arial', sans-serif;
+    font-size: 15px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 20px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: left;
+    text-decoration: none;
+    text-indent: 0px;
+    text-transform: none;
+}
+.Header {
+    color: rgb(255, 255, 255);
+    font-family: 'Arial-BoldMT', 'Arial', sans-serif;
+    font-size: 36px;
+    font-stretch: normal;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 42px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    opacity: 1.00;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-align: center;
+    text-decoration: none;
+    text-indent: 0px;
+    text-transform: none;
+}
+.Normal {
+    padding: 4px;
+}
+.Normal_External_638_129 {
+    position: relative;
+}
+.Normal_External_659_170 {
+    position: relative;
+}
+.Normal_External_609_91 {
+    position: relative;
+}
+.graphic_generic_body_textbox_style_default_SkipStroke {
+    background: transparent;
+    opacity: 1.00;
+}
+.graphic_generic_header_textbox_style_default_SkipStroke {
+    background: transparent;
+    opacity: 1.00;
+}
+.graphic_image_style_default_SkipStroke {
+    background: transparent;
+    opacity: 1.00;
+}
+.graphic_shape_layout_style_default_External_923_7 {
+    position: relative;
+}
+.graphic_shape_layout_style_default {
+    padding: 4px;
+}
+.graphic_shape_layout_style_default_External_919_1 {
+    position: relative;
+}
+.graphic_shape_style_default_SkipStroke {
+    background: rgb(203, 203, 203);
+    opacity: 1.00;
+}
+.graphic_shape_style_default_6_SkipStroke {
+    background: rgb(0, 0, 0);
+    opacity: 1.00;
+}
+.graphic_shape_style_default_7_SkipStroke {
+    background: rgb(0, 0, 0);
+    opacity: 1.00;
+}
+.graphic_textbox_layout_style_default {
+    padding: 4px;
+}
+.graphic_textbox_layout_style_default_External_518_95 {
+    position: relative;
+}
+.graphic_textbox_layout_style_default_External_484_51 {
+    position: relative;
+}
+.graphic_textbox_layout_style_default_External_791_28 {
+    position: relative;
+}
+.graphic_textbox_layout_style_default_External_670_89 {
+    position: relative;
+}
+.graphic_textbox_layout_style_default_External_562_26 {
+    position: relative;
+}
+.graphic_textbox_style_default_SkipStroke {
+    background: transparent;
+    opacity: 1.00;
+}
+a {
+    color: rgb(235, 235, 235);
+    text-decoration: underline;
+}
+a:visited {
+    color: rgb(214, 214, 214);
+    text-decoration: underline;
+}
+a.class1 {
+    color: rgb(155, 250, 34);
+    text-decoration: underline;
+}
+a.class1:visited {
+    color: rgb(178, 240, 56);
+    text-decoration: underline;
+}
+a.class1:hover {
+    color: rgb(255, 186, 39);
+    text-decoration: underline;
+}
+a.class2 {
+    color: rgb(155, 250, 34);
+    text-decoration: underline;
+}
+a.class2:visited {
+    color: rgb(178, 240, 56);
+    text-decoration: underline;
+}
+a.class2:hover {
+    color: rgb(255, 186, 39);
+    text-decoration: underline;
+}
+a.class3 {
+    color: rgb(155, 250, 34);
+    text-decoration: none;
+}
+a.class3:visited {
+    color: rgb(178, 240, 56);
+    text-decoration: underline;
+}
+a.class3:hover {
+    color: rgb(255, 186, 39);
+    text-decoration: underline;
+}
+a.class4 {
+    color: rgb(155, 250, 34);
+    text-decoration: underline;
+}
+a.class4:visited {
+    color: rgb(178, 240, 56);
+    text-decoration: underline;
+}
+a.class4:hover {
+    color: rgb(255, 186, 39);
+    text-decoration: underline;
+}
+a.class5 {
+    color: rgb(155, 250, 34);
+    text-decoration: underline;
+}
+a.class5:visited {
+    color: rgb(178, 240, 56);
+    text-decoration: underline;
+}
+a.class5:hover {
+    color: rgb(255, 186, 39);
+    text-decoration: underline;
+}
+a.class6 {
+    color: rgb(142, 250, 0);
+}
+a.class6:visited {
+    color: rgb(214, 214, 214);
+    text-decoration: underline;
+}
+a.class6:hover {
+    color: rgb(255, 199, 82);
+    text-decoration: underline;
+}
+a:hover {
+    color: rgb(255, 199, 82);
+    text-decoration: underline;
+}
+.bumper {
+    font-size: 1px;
+    line-height: 1px;
+}
+.tinyText {
+    font-size: 1px;
+    line-height: 1px;
+}
+#widget0 a:hover {
+    color: rgb(255, 199, 82);
+    text-decoration: underline;
+}
+#widget0 a:visited {
+    color: rgb(214, 214, 214);
+    text-decoration: underline;
+}
+#widget0 a {
+    color: rgb(235, 235, 235);
+    text-decoration: underline;
+}
+.spacer {
+    font-size: 1px;
+    line-height: 1px;
+}
+body { 
+    -webkit-text-size-adjust: none;
+}
+div { 
+    overflow: visible; 
+}
+img { 
+    border: none; 
+}
+.InlineBlock { 
+    display: inline; 
+}
+.InlineBlock { 
+    display: inline-block; 
+}
+.inline-block {
+    display: inline-block;
+    vertical-align: baseline;
+    margin-bottom:0.3em;
+}
+.inline-block.shape-with-text {
+    vertical-align: bottom;
+}
+.vertical-align-middle-middlebox {
+    display: table;
+}
+.vertical-align-middle-innerbox {
+    display: table-cell;
+    vertical-align: middle;
+}
+div.paragraph {
+    position: relative;
+}
+li.full-width {
+    width: 100;
+}

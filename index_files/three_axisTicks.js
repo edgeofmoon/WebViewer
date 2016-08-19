@@ -85,7 +85,11 @@ three_axisTicks.prototype.update = function () {
             var line = new THREE.Line(lineGeo, lineMat);
             this.scene.add(line);
 
-            var pixelSize = [1.04 / this.viewbox.size().x, 1.04 / this.viewbox.size().y];
+            var pixelSize = [1, 1];
+            if (this.viewbox.size().x != 0 && this.viewbox.size().y != 0) {
+                pixelSize = [1.04 / this.viewbox.size().x, 1.04 / this.viewbox.size().y];
+                
+            }
             var textMesh = genTextQuad(value.toExponential(),
                 0, "10px Arial", pixelSize, 'right');
             textMesh.translateX(lineStart.x);

@@ -46,7 +46,7 @@ var three_tooltip = function () {
                 width = Math.max(metrics.width, width);
             }
             var height = textHeight * lines.length;
-            var boarder = 2;
+            var boarder = 5;
             var tw = 2;
             var th = 2;
             while (tw < width + boarder * 2) tw *= 2;
@@ -62,8 +62,10 @@ var three_tooltip = function () {
             context.textAlign = "left";
             context.textBaseline = "top";
             context.clearRect(0, 0, canvas.width, canvas.height);
-            context.fillStyle = "rgba(0,0,0,0.95)"; // black border
+            context.fillStyle = "rgba(125,125,125,0.95)"; // 1 pixel gray border
             context.fillRect(0, 0, width + boarder * 2, height + boarder * 2);
+            context.fillStyle = "rgba(255,255,255,0.95)"; // black border
+            context.fillRect(1, 1, width + boarder * 2 - 2, height + boarder * 2 - 2);
             context.fillStyle = "rgba(255,255,255,0.95)"; // white filler
             context.fillRect(boarder, boarder, width, height);
             context.fillStyle = "rgba(0,0,0,1)"; // text color

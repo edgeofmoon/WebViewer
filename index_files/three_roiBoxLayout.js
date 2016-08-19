@@ -5,9 +5,10 @@ var three_roiBoxLayout = function () {
     this.cohortCompData = null;
 
     // render parameters
-    this.roiBox_width = 0.05;
+    this.roiBox_widthBasePixel = 25;
+    this.roiBox_width = 0.03;
     this.roiBox_interval = 0.00;
-    this.roiBox_hideWidth = this.roiBox_width / 5;
+    this.roiBox_hideWidthFactor = 0.2;
     this.roiBox_hideInterval = 0.00;
     this.roiBox_quadYOfst = 0.025;
     this.roiBox_quadHeight = 0.2;
@@ -33,7 +34,6 @@ var three_roiBoxLayout = function () {
     this.statsIndex = 1;
     this.statsRange = [];
 
-    this.setBar
     this.setQuadNeed = function (need) {
         if (need) {
             this.roiBox_quadYOfst = 0.025;
@@ -79,7 +79,7 @@ var three_roiBoxLayout = function () {
                         i = sortOrder[iLoc];
                     }
                     var xInterval = roiHidden[i] ? this.roiBox_hideInterval : this.roiBox_interval;
-                    var width = roiHidden[i] ? this.roiBox_hideWidth : this.roiBox_width;
+                    var width = roiHidden[i] ? this.roiBox_hideWidthFactor * this.roiBox_width : this.roiBox_width;
                     xOffset += xInterval;
                     quads[i].min.set(xOffset, this.roiBox_baseY - this.roiBox_quadYOfst - this.roiBox_quadHeight);
                     xOffset += width;
@@ -121,6 +121,7 @@ var three_roiBoxLayout = function () {
                     bars.push(bar);
                     if (globalRange) {
                         this.statsRange = globalRange;
+                        //this.statsRange = this.cohortCompData.computeStatsRange(this.statsIndex);
                     }
                     colors[i] = this.barColor(i);
                     this.statsRange = localRange;
@@ -222,7 +223,6 @@ var three_roiBoxLayout = function () {
         return height;
     }
     this.barColor = function (idx) {
-
         if (this.cohortCompData.getStatsName(this.statsIndex) === 'p value') {
             var statValue = this.cohortCompData.cohortRoiCompStats[idx].getStats(this.statsIndex);
             statValue = Math.log10(statValue);
@@ -238,6 +238,7 @@ var three_roiBoxLayout = function () {
             return three_colorTable.divergingColor(statValue, this.statsRange[0],
                 this.statsRange[1]);
         }
+
         /*
         return new THREE.Color(1, 1, 1);
         */

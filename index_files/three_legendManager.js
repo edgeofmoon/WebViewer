@@ -17,10 +17,10 @@ var three_legendManager = function () {
         return gCoord;
     }
 
-    this.addTextDiv = function (text, coord) {
-
+    this.addTextDiv = function (text, coord, haligh) {
+        var ha = haligh ? haligh : 'middle';
         var pixelSize = [1.0 / this.viewbox.size().x, 1.0 / this.viewbox.size().y];
-        var textMesh = genTextQuad(text, 0, "12px Arial", pixelSize, 'left', 'top');
+        var textMesh = genTextQuad(text, 0, "12px Arial", pixelSize, ha, 'top');
         textMesh.translateX(coord.x);
         textMesh.translateY(coord.y);
         textMesh.frustumCulled = false;
@@ -134,7 +134,7 @@ var three_legendManager = function () {
         }
         // add title
         var pixelPerUnit = this.viewbox.size().y;
-        var titleCoord = new THREE.Vector2(box.center().x, box.max.y + 15 / pixelPerUnit);
+        var titleCoord = new THREE.Vector2(box.min.x, box.max.y + 15 / pixelPerUnit);
         this.addTextDiv(statsName, titleCoord);
     }
         
@@ -211,13 +211,29 @@ var three_legendManager = function () {
         var renderable = new THREE.Mesh(geometry, vertexColorMaterial);
         scene.add(renderable);
 
+        // add ticks
+        var tickHeight = 0.05;
+        var tickGeometry = new THREE.Geometry();
+        var zeroPositionX = box.min.x + box.size().x * ratio / (1 + ratio);
+        tickGeometry.vertices.push(new THREE.Vector3(box.min.x, box.min.y, 1));
+        tickGeometry.vertices.push(new THREE.Vector3(box.min.x, box.min.y - tickHeight, 1));
+        tickGeometry.vertices.push(new THREE.Vector3(zeroPositionX, box.min.y, 1));
+        tickGeometry.vertices.push(new THREE.Vector3(zeroPositionX, box.min.y - tickHeight, 1));
+        tickGeometry.vertices.push(new THREE.Vector3(box.max.x, box.min.y, 1));
+        tickGeometry.vertices.push(new THREE.Vector3(box.max.x, box.min.y - tickHeight, 1));
+        tickGeometry.vertices.push(new THREE.Vector3(box.min.x, box.min.y, 1));
+        tickGeometry.vertices.push(new THREE.Vector3(box.max.x, box.min.y, 1));
+        var tickMaterial = new THREE.LineBasicMaterial({ color: 0x0000 });
+        var tickMesh = new THREE.LineSegments(tickGeometry, tickMaterial);
+        renderable.add(tickMesh);
+
         // update labels
         // add negative value label
         var value = dataRange[0];
         var valueString = value.toString();
         valueString = valueString.substring(0, Math.min(valueString.length, 5));
         var xCoord = box.min.x;
-        var coord = new THREE.Vector2(xCoord, box.min.y);
+        var coord = new THREE.Vector2(xCoord, box.min.y - tickHeight);
         this.addTextDiv(valueString, coord);
 
         // add positive value label
@@ -225,26 +241,28 @@ var three_legendManager = function () {
         var valueString = value.toString();
         valueString = valueString.substring(0, Math.min(valueString.length, 4));
         var xCoord = box.max.x;
-        var coord = new THREE.Vector2(xCoord, box.min.y);
+        var coord = new THREE.Vector2(xCoord, box.min.y - tickHeight);
         this.addTextDiv(valueString, coord);
 
         if (dataRange[0] * dataRange[1] < 0) {
             // add 0 value label
             var zeroString = '0';
-            var zeroCoord = new THREE.Vector2(box.min.x+box.size().x * ratio / (1 + ratio), box.min.y);
+            var zeroCoord = new THREE.Vector2
+                (box.min.x + box.size().x * ratio / (1 + ratio), box.min.y - tickHeight);
             this.addTextDiv(zeroString, zeroCoord);
         }
         // add title
         var pixelPerUnit = this.viewbox.size().y;
-        var titleCoord = new THREE.Vector2(box.center().x, box.max.y + 15 / pixelPerUnit);
-        this.addTextDiv(statsName, titleCoord);
+        var titleCoord = new THREE.Vector2(box.min.x, box.max.y + 15 / pixelPerUnit);
+        this.addTextDiv(statsName, titleCoord, 'left');
+        //this.addTextDiv("coefficient", titleCoord);
     }
     this.computeAxisRange = function (valueRange, statsName) {
         var mapType = three_legendManager.getStatsMapType(statsName);
         if (mapType == 'linear') {
             if (spatialView.globalNormalization) {
                 var dataRange = this.legendRanges.get(statsName);
-                return [0, dataRange[1]];
+                return [0, computeChartMax(Math.max(Math.abs(dataRange[0]), Math.abs(dataRange[1])))];
             }
             else {
                 var rst = [0, 0];
@@ -331,6 +349,7 @@ var three_legendManager = function () {
     }
 
     this.render = function () {
+        if (this.viewbox.size().x < 100) return;
         renderer.setViewport(this.viewbox.min.x, this.viewbox.min.y, this.viewbox.size().x, this.viewbox.size().y);
         renderer.setScissor(this.viewbox.min.x, this.viewbox.min.y, this.viewbox.size().x, this.viewbox.size().y);
         //renderer.clear();
@@ -388,8 +407,8 @@ three_legendManager.getValueHeight = function (value, range, mapType) {
 three_legendManager.nomalizeValueInRange = function (value, range, mapType) {
     mapType = (mapType ? mapType : 'linear');
     if (mapType == 'linear') {
-        //return Math.abs(value) / Math.max(Math.abs(range[0]), Math.abs(range[1]));
-        var chartMax = computeChartMax(Math.max(Math.abs(range[0]), Math.abs(range[1])));
+        return Math.abs(value) / Math.max(Math.abs(range[0]), Math.abs(range[1]));
+        //var chartMax = computeChartMax(Math.max(Math.abs(range[0]), Math.abs(range[1])));
         return Math.abs(value) / chartMax;
     }
     else if (mapType == 'log') {

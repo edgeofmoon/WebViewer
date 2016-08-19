@@ -8,8 +8,8 @@ var three_spatialView = function () {
     //this.controls = new THREE.OrbitControls(this.camera);
     this.viewbox = new THREE.Box2(new THREE.Vector2(0, 0),
         new THREE.Vector2(window.innerWidth, window.innerHeight));
-    this.light0 = new THREE.SpotLight(0xffffff);
-    this.light1 = new THREE.SpotLight(0xffffff);
+    this.light0 = new THREE.SpotLight(0xffffff, 1.0);
+    this.light1 = new THREE.SpotLight(0xffffff, 1.0);
     this.cortexMeshes = [[], []];
     this.roiMesh = new Map();
     this.roiLoading = new Map();
@@ -17,10 +17,35 @@ var three_spatialView = function () {
     // axis
     var axisLength = 100;
     this.axisHelper = new THREE.AxisHelper(axisLength);
+    // arrows
+    var arrow_radius = 1;
+    var arrow_height = 6;
+    var arrow_detail = 32;
+    var coneGeometryX = new THREE.CylinderGeometry(
+        0, arrow_radius, arrow_height, arrow_detail);
+    coneGeometryX.rotateZ(-Math.PI / 2);
+    coneGeometryX.translate(axisLength, 0, 0);
+    var coneMaterialX = new THREE.MeshBasicMaterial({color:0xff0000});
+    var coneMeshX = new THREE.Mesh(coneGeometryX, coneMaterialX);
+    this.axisHelper.add(coneMeshX);
+    var coneGeometryY = new THREE.CylinderGeometry(
+        0, arrow_radius, arrow_height, arrow_detail);
+    coneGeometryY.translate(0, axisLength, 0);
+    var coneMaterialY = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    var coneMeshY = new THREE.Mesh(coneGeometryY, coneMaterialY);
+    this.axisHelper.add(coneMeshY);
+    var coneGeometryZ = new THREE.CylinderGeometry(
+        0, arrow_radius, arrow_height, arrow_detail);
+    coneGeometryZ.rotateX(Math.PI / 2);
+    coneGeometryZ.translate(0, 0, axisLength);
+    var coneMaterialZ = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+    var coneMeshZ = new THREE.Mesh(coneGeometryZ, coneMaterialZ);
+    this.axisHelper.add(coneMeshZ);
 
     this.labelDivs = [];
     this.labelTexts = ['Right', 'Anterior', 'Superior'];
-    this.labelColor = ['#ff0000', '#00ff00', '#0000ff'];
+    //this.labelColor = ['#ff0000', '#00ff00', '#0000ff'];
+    this.labelColor = ['#000000', '#000000', '#000000'];
     this.labelCoords = [new THREE.Vector3(axisLength, 0, 0),
         new THREE.Vector3(0, axisLength, 0),
         new THREE.Vector3(0, 0, axisLength),
@@ -41,15 +66,20 @@ var three_spatialView = function () {
     this.globalNormalization = true;
     this.stackerView = false;
     this.roiLinks = true;
-
+    this.inplaceChartsShow = false;
+    this.autoVerticesSort = false;
     // UI
     var gui = new dat.GUI({ autoPlace: false });
     gui.close();
     gui.domElement.style.position = 'absolute';
     gui.domElement.style.top = '0px';
-    var guiLeft = window.innerWidth * 0.15;
-    gui.domElement.style.left = guiLeft+'px';
+    //var guiLeft = window.innerWidth * 0.15;
+    //gui.domElement.style.left = guiLeft + 'px';
+    gui.domElement.style.left = '0px';
+    //gui.domElement.style.width = '350px';
     document.body.appendChild(gui.domElement);
+
+
     var scope = this;
     function updateRender() { scope.updateRendering(); };
     function updateNormalization() {
@@ -76,12 +106,28 @@ var three_spatialView = function () {
             roiView.enable();
         }
     }
+    function updateInplaceCharts() {
+        if (scope.inplaceChartsShow) {
+            inplaceCharts.enable();
+        }
+        else {
+            inplaceCharts.disable();
+        }
+    }
     this.updateData = function() {
         var fileinput = document.getElementById('fileinput2');
         fileinput.click();
     };
+    this.existingDataName = '';
+    this.loadExistingData = function () {
+        var fn = 'data/csv/' + this.existingDataName + '.csv';
+        loadPreviewCVSData(fn);
+    };
+    this.clearAllData = function () {
+        roiView.removeAllSubViews();
+    }
     this.resetCamera = function () {
-        this.camera.position.set(0, 0, 340);
+        this.camera.position.set(0, 0, 250);
         this.camera.lookAt(this.scene.position);
         this.camera.up.set(0, 1, 0);
     }
@@ -135,17 +181,41 @@ var three_spatialView = function () {
     f1.add(this, 'showAxis').name('Show axis').onFinishChange(toggleAxis);
     f1.add(this, 'showBoundary').name('Show boundary');
     f1.add(this, 'tranparency').min(0).max(1.0).name('Transparency').onChange(updateRender);
-    //f1.add(this, 'autoVerticesSort').name('AutoVerticesSort').onChange(sortVertices);
+    f1.add(this, 'autoVerticesSort').name('AutoVerticesSort').onChange(sortVertices);
     var f2 = gui.addFolder("Chart View");
     f2.add(this, 'showTracts').name('ROI tracts');
     f2.add(this, 'tractThreshold').min(0).max(1.0).name('Density threshold').onChange(updateRender);
     f2.add(this, 'globalNormalization').name('Global normalization').onChange(updateNormalization);
     f2.add(this, 'stackerView').name('Stacker view').onChange(updateStacker);
     f2.add(this, 'roiLinks').name('Show links');
+    f2.add(this, 'inplaceChartsShow').name('Inplace charts').onChange(updateInplaceCharts);
     var f3 = gui.addFolder("Camera");
     f3.add(this, 'resetCamera').name('Reset Camera');
     var f4 = gui.addFolder("Data");
-    f4.add(this, 'updateData').name('Load Data');
+    f4.add(this, 'updateData').name('Upload');
+    f4.add(this, 'clearAllData').name('Clear All');
+    f4.add(this, 'existingDataName',
+        ['Table-3',
+        'Table-4',
+        'meta',
+        'turner',
+        'TLE_vs_CONS',
+        'AL',
+        'ALLEPI_v_CONS_cortical',
+        'GGE_v_CONS_cortical',
+        'MTLE-L_vs_CONS_cortical',
+        'MTLE-R_vs_CONS_cortical',
+        'ALLEPI_v_CONS_subcortical',
+        'GGE_v_CONS_subcortical',
+        'MTLE-L_vs_CONS_subcortical',
+        'MTLE-R_vs_CONS_subcortical',
+        ]).name('Existing Data');
+    f4.add(this, 'loadExistingData').name('Load Existing');
+    var f5 = gui.addFolder("About");
+    this.openInfoBox = function(){
+        $("#infoBox").dialog("open");
+    }
+    f5.add(this, 'openInfoBox').name('Credits');
 
     
 	 $("div.dg.main")
@@ -232,7 +302,7 @@ var three_spatialView = function () {
         this.controls.responseBox = this.viewbox;
         this.camera.aspect = viewbox.size().x / viewbox.size().y;
         this.camera.updateProjectionMatrix();
-        var guiLeft = window.innerWidth * 0.15;
+        var guiLeft = viewbox.min.x;
         gui.domElement.style.left = guiLeft + 'px';
     }
 
@@ -242,7 +312,12 @@ var three_spatialView = function () {
     }
 
     // add cortex mesh
-    this.addCortexMesh = function(lfn, rfh){
+    this.addCortexMesh = function (lfn, rfh) {
+
+        //var texLegend = genTexLengend();
+        //this.scene.add(texLegend);
+
+
         three_cortexMesh(lfn, rfh, this.scene);
     }
 
@@ -349,7 +424,7 @@ var three_spatialView = function () {
             destoryThreeJsObjectFromScene(spatialView.scene, object);
         }
     }
-    this.addRoi = function (roi, color) {
+    this.addRoi = function (roi, color, value) {
         if (this.roiMesh.get(roi)) return;
         if (this.isRoiLoading(roi)) return;
         scope = this;
@@ -360,6 +435,7 @@ var three_spatialView = function () {
                 geometry.computeBoundingBox();
             }
             var colorMaterial = new THREE.MeshLambertMaterial;
+            //var colorMaterial = new THREE.MeshBasicMaterial;
             colorMaterial.side = THREE.DoubleSide;
             renderer.sortObjects = false;
             if (color == undefined) {
@@ -373,11 +449,10 @@ var three_spatialView = function () {
             if (roi.type == 'cortical') {
                 colorMaterial.transparent = true;
                 colorMaterial.opacity = 1-scope.corticalTranparency;
-                if (geometry instanceof THREE.BufferGeometry) {
-                    var unpackedGeometry = new THREE.Geometry().fromBufferGeometry(geometry);
-                    unpackedGeometry.mergeVertices();
-                    mesh.geometry = unpackedGeometry;
-                }
+
+                // add for texture test
+                //mesh.material = new three_textureShadermaterial(Math.sqrt(Math.abs(value))+0.1);
+
                 if (scope.showBoundary) {
                     var lineSegmentGeometry = makeBoundaryLineSegmentsGeometry(mesh.geometry.vertices, mesh.geometry.faces);
                     var lineMaterial = new THREE.LineBasicMaterial({
@@ -466,7 +541,9 @@ var three_spatialView = function () {
         var intersects = this.raycaster.intersectObjects(this.scene.children);
         for (var i = 0; i < intersects.length; i++) {
             if (intersects[i].object.roi !== undefined) {
-                intersects[i].object.material.color.set(0xff0000);
+                if (intersects[i].object.material.color) {
+                    intersects[i].object.material.color.set(0xff0000);
+                }
                 // only checks the nearest object
                 this.selectedObj = intersects[i].object;
                 break;
@@ -533,6 +610,8 @@ var three_spatialView = function () {
     // only unmoved mouse click, i.e. not drag
     // removes meshes
     var moved = false;
+    var downPosX = -1;
+    var downPosY = -1;
     function onMouseMove(event) {
         //uiPanel.onMouseMove(event);
 
@@ -550,13 +629,19 @@ var three_spatialView = function () {
                 tooltip.setPosition(scope.mousei);
                 tooltip.setText(scope.selectedObj.name+'\n(Click to remove)');
             }
-            moved = true;
+            if (event.clientX !== downPosX || event.clientY !== downPosY) {
+                moved = true;
+                //console.log('move event true');
+            }
         }
     }
     function onMouseDown(event) {
         if (event.button !== 0) return;
         if (!scope.eventInBox(event)) return;
         moved = false;
+        downPosX = event.clientX;
+        downPosY = event.clientY;
+        //console.log('down event false');
         window.addEventListener('mouseup', onMouseUp, false);
     }
     function onMouseUp(event) {
@@ -578,6 +663,7 @@ var three_spatialView = function () {
         if (moved) {
             sortVertices();
             moved = false;
+            //console.log('up event false');
         }
     }
     function onMouseWheel(){

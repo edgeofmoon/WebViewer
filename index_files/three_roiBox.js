@@ -72,7 +72,13 @@ var three_roiBox = function () {
 
         // update label
         var pixelSize = [1.0 / this.parent.getViewbox().size().x, 1.0 / this.parent.getViewbox().size().y];
-        var textMesh = genTextQuad(this.label, 0, "12px Arial", pixelSize, 'left', 'top', -3.14/4);
+        function labelLengthToFontSize(length) {
+            if (length < 5) return 12;
+            if (length > 15) return 8;
+            return Math.floor(12-(length-5)*0.4);
+        }
+        var fontSize = labelLengthToFontSize(this.label.length);
+        var textMesh = genTextQuad(this.label, 0, fontSize+"px Arial", pixelSize, 'left', 'top', -3.14 / 8);
         textMesh.translateX(this.quad.min.x);
         textMesh.translateY(this.quad.min.y);
         textMesh.frustumCulled = false;

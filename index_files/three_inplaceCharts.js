@@ -24,6 +24,8 @@ var three_inplaceCharts = function () {
     this.statsName = "Effect size";
     this.statsRange = [0, 1];
 
+    this.enabled = true;
+
     this.setViewbox = function (viewbox) {
         this.viewbox = viewbox;
     }
@@ -40,6 +42,7 @@ var three_inplaceCharts = function () {
         this.statsRange = roiView.getLegendManager().legendRanges.get(this.statsName);
         for (var ic = 0; ic < this.cohortCompDatasets.length; ic++) {
             var compData = this.cohortCompDatasets[ic];
+            //this.statsRange = compData.computeStatsRange(this.statsIndex);
             var rois = compData.rois;
             for (var ir = 0; ir < rois.length; ir++) {
                 var roi = rois[ir];
@@ -139,7 +142,7 @@ var three_inplaceCharts = function () {
         var zoneLensStartNlc = [[1,1],[-1,1],[-1,1],[-1,-1]];
         var zoneOffsetNlc = [[0, -1], [1, 0], [0, -1], [1, 0]];
         var zoneAnchorToBottomLeft = [[0, -1], [0, 0], [-1, -1], [0, -1]];
-        var zoneLabelTilt = [0, -Math.PI / 4, 0, -Math.PI / 4];
+        var zoneLabelTilt = [0, -Math.PI / 8, 0, -Math.PI / 8];
         for (var iz = 0; iz < 4; iz++) {
             var rois = zoneRois[iz];
             var zoneOffset = [zoneLensStartNlc[iz][0] * this.lensPanelDistance[0]
@@ -359,6 +362,7 @@ var three_inplaceCharts = function () {
         }
     }
     this.render = function () {
+        if (!this.enabled) return;
         this.update();
         renderer.setViewport(this.viewbox.min.x, this.viewbox.min.y, this.viewbox.size().x, this.viewbox.size().y);
         renderer.setScissor(this.viewbox.min.x, this.viewbox.min.y, this.viewbox.size().x, this.viewbox.size().y);
@@ -437,6 +441,7 @@ var three_inplaceCharts = function () {
     }
 
     this.disable = function () {
+        this.enabled = false;
         document.removeEventListener('mousemove', onMouseMove, false);
         document.removeEventListener('mousedown', onMouseDown, false);
         document.removeEventListener('mouseup', onMouseUp, false);
@@ -444,6 +449,7 @@ var three_inplaceCharts = function () {
     }
 
     this.enable = function () {
+        this.enabled = true;
         document.addEventListener('mousemove', onMouseMove, false);
         document.addEventListener('mousedown', onMouseDown, false);
         document.addEventListener('mouseup', onMouseUp, false);

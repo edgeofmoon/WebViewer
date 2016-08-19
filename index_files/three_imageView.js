@@ -35,20 +35,28 @@ subcorticalNames = ["3rd-Ventricle",
 
 var three_imageView = function () {
     this.viewbox = new THREE.Box2(new THREE.Vector2(0, 0),
-        new THREE.Vector2(window.innerWidth, window.innerHeight));
+        new THREE.Vector2(1, 1));
     var scene = new THREE.Scene();
     var camera = new THREE.OrthographicCamera(0, 1, 1, 0, -100, 20000);
     var imgObjs = [];
     var totalHeight = 0;
     var curIndex = 0;
+    this.enabled = true;
     // functions
     var scope = this;
     this.setViewbox = function (viewbox) {
-        this.viewbox = viewbox;
-        this.updateLayout();
+        if (viewbox.size().x >= 5 && viewbox.size().y >= 5) {
+            this.viewbox = viewbox;
+            this.enable();
+            this.updateLayout();
+        }
+        else {
+            this.disable();
+        }
     }
     this.addImage = function (imgName, roiName, color) {
         var loader = new THREE.TextureLoader();
+        var thisIndex = curIndex++;
         loader.load(imgName, function (tex) {
             var geometry = new THREE.PlaneGeometry(1,1)
                 .translate(0.5, 0.5, 0.9);
@@ -60,10 +68,12 @@ var three_imageView = function () {
             var imageObj = new THREE.Mesh(geometry, material);
             imageObj.roiName = roiName;
             imageObj.mainColor = color;
-            imageObj.index = curIndex++;
+            imageObj.index = thisIndex;
             imgObjs.push(imageObj);
             scene.add(imageObj);
-            scope.updateLayout();
+            if (this.enabled) {
+                scope.updateLayout();
+            }
         });
     }
     this.updateLayout = function () {
@@ -113,19 +123,21 @@ var three_imageView = function () {
             imgObj0.geometry.vertices[2].set(0, -totalHeight - objHeight, 0.9);
             imgObj0.geometry.vertices[3].set(0.5, -totalHeight - objHeight, 0.9);
             imgObj0.geometry.verticesNeedUpdate = true;
-            
+            imgObj0.geometry.computeBoundingSphere();
             if (2 * i + 1 < imgObjs.length) {
                 imgObj1.geometry.vertices[0].set(0.5, -totalHeight, 0.9);
                 imgObj1.geometry.vertices[1].set(1, -totalHeight, 0.9);
                 imgObj1.geometry.vertices[2].set(0.5, -totalHeight - objHeight, 0.9);
                 imgObj1.geometry.vertices[3].set(1, -totalHeight - objHeight, 0.9);
                 imgObj1.geometry.verticesNeedUpdate = true;
+                imgObj1.geometry.computeBoundingSphere();
             }
 
             totalHeight += objHeight;
         }
     }
     this.render = function () {
+        if (!this.enabled) return;
         renderer.setViewport(this.viewbox.min.x, this.viewbox.min.y, this.viewbox.size().x, this.viewbox.size().y);
         renderer.setScissor(this.viewbox.min.x, this.viewbox.min.y, this.viewbox.size().x, this.viewbox.size().y);
 
@@ -149,7 +161,7 @@ var three_imageView = function () {
         spatialView.addMeshByFileNames(roiFullNamePaths, roiName, color);
     }
 
-    function mousewheel(event) {
+    function onMouseWheel(event) {
         if (!scope.viewbox.containsPoint(eventCoord(event))) {
             return;
         }
@@ -182,7 +194,7 @@ var three_imageView = function () {
         camera.updateProjectionMatrix();
     }
 
-    function mousedown(event) {
+    function onMouseDown(event) {
         if (!scope.viewbox.containsPoint(eventCoord(event))) {
             return;
         }
@@ -204,7 +216,39 @@ var three_imageView = function () {
             }
         }
     }
+    function onMouseMove(event) {
+        if (!scope.viewbox.containsPoint(eventCoord(event))) {
+            return;
+        }
+        var mouse = new THREE.Vector2();
+        mouse.x = ((event.clientX - scope.viewbox.min.x) / scope.viewbox.size().x) * 2 - 1;
+        mouse.y = -((event.clientY - scope.viewbox.min.y) / scope.viewbox.size().y) * 2 + 1;
+        var raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, camera);
+        var intersects = raycaster.intersectObjects(scene.children);
 
-    document.addEventListener('mousewheel', mousewheel, false);
-    document.addEventListener('mousedown', mousedown, false);
+        for (var i = 0; i < intersects.length; i++) {
+            if (intersects[i].object.roiName !== undefined) {
+                tooltip.setPosition(eventCoord(event));
+                tooltip.setText(intersects[i].object.roiName);
+           }
+        }
+    }
+
+    this.disable = function () {
+        if (!this.enabled) return;
+        this.enabled = false;
+        document.removeEventListener('mousedown', onMouseDown, false);
+        document.removeEventListener('mousewheel', onMouseWheel, false);
+        document.removeEventListener('mousemove', onMouseMove, false);
+    }
+
+    this.enable = function () {
+        if (this.enabled) return;
+        this.enabled = true;
+        document.addEventListener('mousedown', onMouseDown, false);
+        document.addEventListener('mousewheel', onMouseWheel, false);
+        document.addEventListener('mousemove', onMouseMove, false);
+    };
+    this.enable();
 }

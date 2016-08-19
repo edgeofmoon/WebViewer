@@ -13,9 +13,10 @@ coretexMesh_material = new THREE.ShaderMaterial(
         uniforms: coretexMesh_uniforms,
         vertexShader: coretexMesh_vertexShader,
         fragmentShader: coretexMesh_fragmentShader,
-        //side: THREE.FrontSide,
-        side: THREE.DoubleSide,
+        side: THREE.FrontSide,
+        //side: THREE.DoubleSide,
         transparent: true,
+        depthWrite: true
     });
 
 coretexMesh_material2 = new THREE.MeshLambertMaterial(
@@ -47,7 +48,7 @@ var three_cortexMesh = function (lfn, rfn, scene) {
                 child.material = coretexMesh_material;
 
                 // to geometry
-                var info = renderer.info;
+                //var info = renderer.info;
                 //var geometry = new THREE.Geometry();
                 //geometry.fromBufferGeometry(child.geometry);
                 //child.geometry.dispose();
@@ -91,7 +92,7 @@ var three_cortexMesh = function (lfn, rfn, scene) {
                 child.material = coretexMesh_material;
                 
                 // to geometry
-                var info = renderer.info;
+                //var info = renderer.info;
                 //var geometry = new THREE.Geometry();
                 //geometry.fromBufferGeometry(child.geometry);
                 //child.geometry.dispose();
