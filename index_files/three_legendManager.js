@@ -135,7 +135,7 @@ var three_legendManager = function () {
         // add title
         var pixelPerUnit = this.viewbox.size().y;
         var titleCoord = new THREE.Vector2(box.min.x, box.max.y + 15 / pixelPerUnit);
-        this.addTextDiv(statsName, titleCoord);
+        this.addTextDiv(statsName, titleCoord, 'left');
     }
         
     this.addLegendLinear = function (statsName, box) {
