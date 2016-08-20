@@ -256,6 +256,28 @@ var three_legendManager = function () {
         var titleCoord = new THREE.Vector2(box.min.x, box.max.y + 15 / pixelPerUnit);
         this.addTextDiv(statsName, titleCoord, 'left');
         //this.addTextDiv("coefficient", titleCoord);
+
+
+        // add intermeadia ticks
+        var mag = Math.floor(Math.log10(Math.abs(dataRange[1] - dataRange[0])));
+        var unit = Math.pow(10, mag);
+        var start = Math.ceil(dataRange[0] / unit);
+        var end = Math.floor(dataRange[1] / unit);
+        for (var i = start; i <= end; i++) {
+            var value = i * unit;
+            if (value != dataRange[0] && value !== dataRange[1] && value !== 0) {
+                var xCoord = (value - dataRange[0]) / (dataRange[1] - dataRange[0]) * box.size().x + box.min.x;
+                var dist = Math.min(Math.abs(xCoord - box.min.x), Math.abs(xCoord - box.max.x));
+                if (dist * this.viewbox.size().x < 30) continue;
+                var coord = new THREE.Vector2(xCoord, box.min.y - tickHeight);
+                var valueString = cleanNumberString(value, mag);
+                this.addTextDiv(valueString, coord);
+                tickGeometry.vertices.push(new THREE.Vector3(xCoord, box.min.y, 1));
+                tickGeometry.vertices.push(new THREE.Vector3(xCoord, box.min.y - tickHeight, 1));
+            }
+        }
+
+
     }
     this.computeAxisRange = function (valueRange, statsName) {
         var mapType = three_legendManager.getStatsMapType(statsName);

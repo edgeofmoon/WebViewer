@@ -77,8 +77,13 @@ var three_roiBox = function () {
             if (length > 15) return 8;
             return Math.floor(12-(length-5)*0.4);
         }
+        var pixelBarWidth = this.quad.size().x / pixelSize[0];
+        var textilt = - Math.PI / 8;
+        if (pixelBarWidth < 18) {
+            textilt = -Math.PI / 2;
+        }
         var fontSize = labelLengthToFontSize(this.label.length);
-        var textMesh = genTextQuad(this.label, 0, fontSize+"px Arial", pixelSize, 'left', 'top', -3.14 / 8);
+        var textMesh = genTextQuad(this.label, 0, fontSize + "px Arial", pixelSize, 'left', 'top', textilt);
         textMesh.translateX(this.quad.min.x);
         textMesh.translateY(this.quad.min.y);
         textMesh.frustumCulled = false;

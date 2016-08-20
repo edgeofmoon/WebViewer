@@ -757,6 +757,18 @@ function ArrayToCohortCompData(table) {
     return cohortCompData;
 }
 
+function cleanNumberString(value, mag) {
+    var str = value.toString();
+    if (mag < 0) {
+        for (var i = 0; i < str.length; i++) {
+            if (str[i] == '.') {
+                return str.substring(0, i + Math.abs(mag) + 1);
+            }
+        }
+    }
+    return str;
+}
+
 function loadPreviewCVSData(fn) {
     var client = new XMLHttpRequest();
     client.open('GET', fn, true);
@@ -773,6 +785,12 @@ function loadPreviewCVSData(fn) {
         newSubView.setStatsIndex(1);
         newSubView.name = leafname;
         roiView.getLegendManager().cohortCompDatasets.push(cohortCompData);
+
+        // auto setup bar width
+        var nBar = cohortCompData.rois.length;
+        newSubView.roiBoxLayout.roiBox_widthBasePixel = Math.min(
+            newSubView.roiBoxLayout.roiBox_widthBasePixel,
+            roiView.viewbox.size().x/(nBar+1));
         //newSubView.update();
         roiView.update();
         //inplaceCharts.updateCompDatesets();

@@ -163,7 +163,7 @@ var three_roiSubView = function (roiView) {
                     });
                     var pixelWidth = 1.04 / this.viewbox.size().x;
                     var pixelHeight = 1.04 / this.viewbox.size().y;
-                    var hlBoxLineGeo = three_makeQuadBoarderGeometryWidth(highlightBox, 3 * pixelWidth, 3 * pixelHeight, 0.9);
+                    var hlBoxLineGeo = three_makeQuadBoarderGeometryWidth(highlightBox, 2 * pixelWidth, 2 * pixelHeight, 0.9);
                     var line = new THREE.Mesh(hlBoxLineGeo, material);
 
                     line.name = 'highlight_' + this.getRois()[i].name;
@@ -605,7 +605,7 @@ var three_roiSubView = function (roiView) {
                     tooltip.setText(name +
                         "\nEffect size: " + effectSize +
                         "\np value: "+pValue +
-                        "\n(Click to toggle 3D tract)");
+                        "\n(Click to toggle 3D geometry)");
                 }
             }
         }

@@ -46,9 +46,9 @@ var three_spatialView = function () {
     this.labelTexts = ['Right', 'Anterior', 'Superior'];
     //this.labelColor = ['#ff0000', '#00ff00', '#0000ff'];
     this.labelColor = ['#000000', '#000000', '#000000'];
-    this.labelCoords = [new THREE.Vector3(axisLength, 0, 0),
-        new THREE.Vector3(0, axisLength, 0),
-        new THREE.Vector3(0, 0, axisLength),
+    this.labelCoords = [new THREE.Vector3(axisLength + arrow_height, 0, 0),
+        new THREE.Vector3(0, axisLength + arrow_height, 0),
+        new THREE.Vector3(0, 0, axisLength + arrow_height),
     ];
 
     // UI
@@ -127,7 +127,7 @@ var three_spatialView = function () {
         roiView.removeAllSubViews();
     }
     this.resetCamera = function () {
-        this.camera.position.set(0, 0, 250);
+        this.camera.position.set(0, 0, 270);
         this.camera.lookAt(this.scene.position);
         this.camera.up.set(0, 1, 0);
     }
@@ -186,7 +186,7 @@ var three_spatialView = function () {
     f2.add(this, 'showTracts').name('ROI tracts');
     f2.add(this, 'tractThreshold').min(0).max(1.0).name('Density threshold').onChange(updateRender);
     f2.add(this, 'globalNormalization').name('Global normalization').onChange(updateNormalization);
-    f2.add(this, 'stackerView').name('Stacker view').onChange(updateStacker);
+    f2.add(this, 'stackerView').name('Stacked view').onChange(updateStacker);
     f2.add(this, 'roiLinks').name('Show links');
     f2.add(this, 'inplaceChartsShow').name('Inplace charts').onChange(updateInplaceCharts);
     var f3 = gui.addFolder("Camera");
@@ -210,7 +210,7 @@ var three_spatialView = function () {
         'MTLE-L_vs_CONS_subcortical',
         'MTLE-R_vs_CONS_subcortical',
         ]).name('Existing Data');
-    f4.add(this, 'loadExistingData').name('Load Existing');
+    f4.add(this, 'loadExistingData').name('Load Existing Data');
     var f5 = gui.addFolder("About");
     this.openInfoBox = function(){
         $("#infoBox").dialog("open");
@@ -627,7 +627,7 @@ var three_spatialView = function () {
             // tooltip update
             if (scope.selectedObj) {
                 tooltip.setPosition(scope.mousei);
-                tooltip.setText(scope.selectedObj.name+'\n(Click to remove)');
+                tooltip.setText(scope.selectedObj.name+'\n(Click to deselect)');
             }
             if (event.clientX !== downPosX || event.clientY !== downPosY) {
                 moved = true;

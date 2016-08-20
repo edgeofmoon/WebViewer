@@ -28,6 +28,7 @@ var three_inplaceCharts = function () {
 
     this.setViewbox = function (viewbox) {
         this.viewbox = viewbox;
+        this.blockSize = 25 / (this.viewbox.size().x*this.lensPanelDistance[0]);
     }
     this.updateCompDatesets = function () {
         for (var ir = 0; ir < roiView.subViews.length; ir++) {

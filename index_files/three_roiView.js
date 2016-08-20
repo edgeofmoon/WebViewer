@@ -54,7 +54,8 @@ var three_roiView = function () {
         }
         var newSubView = new three_roiSubView(this);
         var theRois = (rois === undefined ? this.activeSubView.rois : rois);
-        this.subViews.push(newSubView);
+        //this.subViews.push(newSubView);
+        this.subViews.splice(0, 0, newSubView);
         this.updateSubViewboxes();
         newSubView.init(theRois);
         return newSubView;
