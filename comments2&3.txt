@@ -1,0 +1,38 @@
+(done)remove interval
+(done)remove bounding box lines
+(done)Roi view -> ROI view
+(done)Captial first letter (button, axis name)
+(done)Change sorting order (abs value)
+(done)Change color to head
+(done)number round to 0.1 (global)
+(done)diverging to same extrem
+(done)minor range remove below 0.01
+
+fMRI, dDti paper color scale send to Henan.
+
+Yellow ---->>  REd
+L*   0 ---->>  1
+-4	0	3
+
+(must)
+(done)left alignment
+(done)3D replace 2D chart completely (color block bars) drag 2D<=>3D charts
+(done)3D bar chart label horizontal below sub-lens
+(done)bar x matches dataset
+(done)stack bar
+(done)stacker order by one dataset
+(done)stacker->themeriver outline connection
+(done)manhatten plot color mesh correspondance
+(done)3D chart overlapping??
+(done)roi color connecting line with targetting color
+(done)cortical mesh controllable transparency
+
+(if time)
+auto label removal
+stacker dragable
+
+6/24/2016
+(done)keep the right side chart (not removed after put in 3D)
+(done)shift the top 3D chart to the right
+(done)top and bottom 3D chart label tilt
+(done)legend title to the left

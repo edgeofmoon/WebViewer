@@ -3,14 +3,13 @@ $(function()
 	 $("#infoBox")
 	.css( 
 	{
-	    "background":"rgba(255,255,255,0.5)",
+	    "background": "rgba(255,255,255,0.5)",
 	})
 	.dialog({
 	    autoOpen: false,
-	    modal: true,
-		show: { effect: 'fade', duration: 500 },
-		hide: { effect: 'fade', duration: 500 }
-	})
+	    /*show: { effect: 'fade', duration: 500 },
+		hide: { effect: 'fade', duration: 500 }*/
+	})/*
     .hover(
         function (ev) {
             ev.stopPropagation();
@@ -26,7 +25,7 @@ $(function()
 	.click(
 		function (ev) {
 		    ev.stopPropagation();
-		});
+		})*/;
 	
 	 $("#infoButton")
        .text("") // sets text to empty
@@ -56,7 +55,7 @@ $(function()
 
 	 $("div.ui-dialog")
      .mousemove(function (ev) {
-         ev.stopPropagation();
+         //ev.stopPropagation();
      })
      .mousedown(function (ev) {
          ev.stopPropagation();

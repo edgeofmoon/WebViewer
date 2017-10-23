@@ -1,0 +1,16 @@
+1) (done)if else label rotation
+2) (done)add ticks
+3) (done)3d axis names away from arrow
+4) (done)stacker -> stacked
+5) (done)load existing "data"
+6) (done)load new data to below
+7) (done)bar highlight line thinner
+8) (done)toggle not "tract", click to "deselect"
+9) (done)auto bar width when initialized
+
+paper
+1) (done)show address bar, I->1
+2) (done)fig5, zoom in
+3) (done)reference , upper case SOLAR, Upper case first letter
+4) (done) jchen email address
+5) (done) section 3, data remove subsection. add summary paragraph

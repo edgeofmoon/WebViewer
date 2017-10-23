@@ -710,7 +710,7 @@ var three_roiSubView = function (roiView) {
                 var coord = eventCoord(event);
                 if (spatialView.viewbox.containsPoint(coord)) {
                     // tmp removal for gen pics
-                    if (this.getRois()[0].type !== 'cortical') {
+                    if (this.getRois()[0].type !== 'cortical' || true) {
                         // add all rois to spatial view first
                         var rois = this.getRois();
                         for (var i = 0; i < rois.length; i++) {

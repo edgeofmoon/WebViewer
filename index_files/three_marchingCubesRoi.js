@@ -1,3 +1,6 @@
+
+var three_mcroiPoints = [];
+
 // return THREE.geometry
 var three_marchingCubesRoi = function (roi, isolevel) {
 
@@ -19,61 +22,22 @@ var three_marchingCubesRoi = function (roi, isolevel) {
         return xx + bSize * yy + bSize2 * zz;
     };
     // Generate a lzst of 3D poznts and values at those poznts
+    var idx = 0;
+    var npt = three_mcroiPoints.length;
     for (var z = bMin.z; z < bMax.z; z++)
         for (var y = bMin.y; y < bMax.y; y++)
             for (var x = bMin.x; x < bMax.x; x++) {
-                var point = new THREE.Vector3(x - sizes.x / 2, y - sizes.y / 2, z - sizes.z / 2);
-                points.push(point);
-
-                /*
-                // smooth volume
-                var xx = x - bMin.x;
-                var yy = y - bMin.y;
-                var zz = z - bMin.z;
-                var p = [];
-                var idx = 0;
-                var value = 0;
-                var weight = 0;
-                
-                if (xx > 0) {
-                    idx = toIdx(xx-1, yy, zz);
-                    value += roi.data[idx];
-                    weight++;
+                if (idx < npt) {
+                    three_mcroiPoints[idx].x = x - sizes.x / 2;
+                    three_mcroiPoints[idx].y = y - sizes.y / 2;
+                    three_mcroiPoints[idx].z = z - sizes.z / 2;
+                } else {
+                    var point = new THREE.Vector3(x - sizes.x / 2, y - sizes.y / 2, z - sizes.z / 2);
+                    three_mcroiPoints.push(point);
                 }
-                if (yy > 0) {
-                    idx = toIdx(xx, yy - 1, zz);
-                    value += roi.data[idx];
-                    weight++;
-                }
-                if (zz > 0) {
-                    idx = toIdx(xx, yy, zz - 1);
-                    value += roi.data[idx];
-                    weight++;
-                }
-                if (xx < bMax.x - 1) {
-                    idx = toIdx(xx + 1, yy, zz);
-                    value += roi.data[idx];
-                    weight++;
-                }
-                if (yy < bMax.y - 1) {
-                    idx = toIdx(xx, yy + 1, zz);
-                    value += roi.data[idx];
-                    weight++;
-                }
-                if (zz < bMax.z - 1) {
-                    idx = toIdx(xx, yy, zz + 1);
-                    value += roi.data[idx];
-                    weight++;
-                }
-                value /= weight;
-                if (value != 0) {
-                    idx = toIdx(xx, yy, zz);
-                    var newValue = (value + roi.data[idx]) / 2;
-                    values[idx] = newValue;
-                }
-                */
+                idx++;
             }
-
+    points = three_mcroiPoints;
     // Marching Cubes Algorithm
 
 
@@ -213,6 +177,7 @@ var three_marchingCubesRoi = function (roi, isolevel) {
                 }
             }
 
+    points = undefined;
     //geometry.computeCentroids();
     geometry.mergeVertices();
     geometry.computeFaceNormals();

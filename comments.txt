@@ -1,0 +1,11 @@
+bolden boundary lines
+bar chart left should not be empty
+legend for inplace bar charts
+global scale toggle
+ask about whether bar should be displayed in 3D or 2D
+layout of barcharts, contacting marks
+stacked bar charts
+
+1) 3D lens (always global scale)
+2) toggle local/global scale
+3) stacked charts

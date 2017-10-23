@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!-- saved from url=(0056)https://stemkoski.github.io/Three.js/Marching-Cubes.html -->
 <html lang="en">
     <head>
@@ -119,13 +119,13 @@
         <link rel=stylesheet href="./index_files/info.css" />
         <script src="./index_files/info.js"></script>
         <!-- <div id="infoButton"></div> -->
-        <div id="infoBox" title="Credits">
+        <div id="infoBox" title="Credits" style="display:none;">
             <p>This program is a collaborative work by:</p>
             <p>Guohao Zhang (University of Maryland, Baltimore County)</p>
             <p>Peter Kochunov (University of Maryland, School of Medicine)</p>
             <p>Elliot Hong (University of Maryland, School of Medicine)</p>
             <p>Jian Chen (University of Maryland, Baltimore County)</p>
-            <p><a href="./UserGuide.pdf" target="_blank" ><font color="black">User Guide</font></a></p>
+            <p><a href="./UserGuide.pdf" target="_blank"><font color="black">User Guide</font></a></p>
         </div>
 
         <!-- Contains Three JS Algorithm -->
@@ -175,13 +175,13 @@
             void main(){
                 vec3 lightDir = vec3(0, 0, 1);
                 float ambient = 0.3;
-                float diffusion = 0.6*clamp(dot(transformedNormal,lightDir), 0.0, 1.0);
-                //float diffusion = 0.6*abs(dot(transformedNormal,lightDir));
+                //float diffusion = 0.6*clamp(dot(transformedNormal,lightDir), 0.0, 1.0);
+                float diffusion = 0.6*abs(dot(transformedNormal,lightDir));
                 vec3 eyeDir = -normalize(transformedPosition);
                 //vec3 hv = normalize(eyeDir+lightDir);
                 vec3 hv = normalize(-reflect(lightDir,transformedNormal));
-                float specular = 0.2*pow(clamp(dot(hv,transformedNormal),0.0, 1.0), 16.0);
-                //float specular = 0.2*clamp(pow(abs(dot(hv,transformedNormal)), 16.0), 0.0, 1.0);
+                //float specular = 0.2*pow(clamp(dot(hv,transformedNormal),0.0, 1.0), 16.0);
+                float specular = 0.2*clamp(pow(abs(dot(hv,transformedNormal)), 16.0), 0.0, 1.0);
                 gl_FragColor = vec4(1,1,1,1);
                 gl_FragColor = gl_FragColor*(ambient+diffusion);
                 gl_FragColor += vec4(specular,specular,specular,0);
@@ -288,7 +288,7 @@
         <script src="./index_files/three_menus.js"></script>
 
         <!--general-->
-        <script src="./cases/Chris_Cortical/three_app.js"></script>
+        <script src="./cases/Chris_Cortical_fdr/three_app.js"></script>
 
         <!-- jQuery code to display an information button and box when clicked. -->
         <script src="./index_files/jquery-1.9.1.js"></script>

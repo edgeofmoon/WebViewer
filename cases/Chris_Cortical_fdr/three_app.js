@@ -31,28 +31,23 @@ var three_app = function (renderer) {
     loadRoiSpec('data/JHU-WhiteMatter-labels-1mm.nii', 'data/roiSpec3.txt', function (rois) {
         var allrois = globalRois.concat(rois);
         globalRois = allrois;
-        //loadPreviewCVSData('data/csv/Table-3.csv');
-        //loadPreviewCVSData('data/csv/Table-4.csv');
-        //loadPreviewCVSData('data/csv/meta.csv');
-        //loadPreviewCVSData('data/csv/turner.csv');
-        //loadPreviewCVSData('data/csv/TLE_vs_CONS.csv');
-        //loadPreviewCVSData('data/csv/AL.csv');
+        //loadPreviewCVSData('data/Table-3.csv');
+        //loadPreviewCVSData('data/Table-4.csv');
+        //loadPreviewCVSData('data/meta.csv');
+        //loadPreviewCVSData('data/turner.csv');
+        //loadPreviewCVSData('data/TLE_vs_CONS.csv');
+        //loadPreviewCVSData('data/AL.csv');
     });
 
 
     loadMeshRoiSpecs('data/subcorticalFiles.txt', 'data/subcorticalSpecs.txt', function (rois) {
         var allrois = globalRois.concat(rois);
         globalRois = allrois;
-        //adPreviewCVSData('data/csv/ALLEPI_v_CONS_cortical.csv');
-        //loadPreviewCVSData('data/csv/GGE_v_CONS_cortical.csv');
-        //loadPreviewCVSData('data/csv/MTLE-L_vs_CONS_cortical.csv');
-        //loadPreviewCVSData('data/csv/MTLE-R_vs_CONS_cortical.csv');
-
-        loadPreviewCVSData('data/csv/ALLEPI_v_CONS_subcortical.csv');
-        loadPreviewCVSData('data/csv/GGE_v_CONS_subcortical.csv');
-        loadPreviewCVSData('data/csv/MTLE-L_vs_CONS_subcortical.csv');
-        loadPreviewCVSData('data/csv/MTLE-R_vs_CONS_subcortical.csv');
-        loadPreviewCVSData('data/csv/ALLOTHEREPILEPSIES_subcortical.csv');
+        loadPreviewCVSData('data/csv/allepilepsies_cortical_fdr.csv');
+        loadPreviewCVSData('data/csv/ige_cortical_fdr.csv');
+        loadPreviewCVSData('data/csv/mtle_l_cortical_fdr.csv');
+        loadPreviewCVSData('data/csv/mtle_r_cortical_fdr.csv');
+        loadPreviewCVSData('data/csv/allotherepilepsies_cortical_fdr.csv');
     });
 
     document.getElementById('fileinput').addEventListener('change', three_dataLoader.loadRoisFileEventHandler, false);

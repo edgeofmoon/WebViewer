@@ -1,0 +1,12 @@
+program
+1) (done) bar chart narrower£¬ add view boarder to drag
+2) (done) tooltip light gray boarder, add space boarder
+3) (done) button to pure color, light gray
+4) (done) axis add colored arrow, text no color
+5) (done) add tick on legend, title to the left
+6) (done) remove manhattan plot from figures
+7) (done) info icon to menu
+paper
+8) add before 5.6 for manhattan (multi-modality vis), add manhattan plot there
+9) (done) marching cube to implementation
+10) (done) full page figures

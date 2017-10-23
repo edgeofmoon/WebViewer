@@ -47,6 +47,8 @@ var three_app = function (renderer) {
         loadPreviewCVSData('data/csv/GGE_v_CONS_cortical.csv');
         loadPreviewCVSData('data/csv/MTLE-L_vs_CONS_cortical.csv');
         loadPreviewCVSData('data/csv/MTLE-R_vs_CONS_cortical.csv');
+        loadPreviewCVSData('data/csv/ALLOTHEREPILEPSIES_cortical.csv');
+        
 
         //adPreviewCVSData('data/csv/ALLEPI_v_CONS_subcortical.csv');
         //loadPreviewCVSData('data/csv/GGE_v_CONS_subcortical.csv');

@@ -43,16 +43,11 @@ var three_app = function (renderer) {
     loadMeshRoiSpecs('data/subcorticalFiles.txt', 'data/subcorticalSpecs.txt', function (rois) {
         var allrois = globalRois.concat(rois);
         globalRois = allrois;
-        //adPreviewCVSData('data/csv/ALLEPI_v_CONS_cortical.csv');
-        //loadPreviewCVSData('data/csv/GGE_v_CONS_cortical.csv');
-        //loadPreviewCVSData('data/csv/MTLE-L_vs_CONS_cortical.csv');
-        //loadPreviewCVSData('data/csv/MTLE-R_vs_CONS_cortical.csv');
-
-        loadPreviewCVSData('data/csv/ALLEPI_v_CONS_subcortical.csv');
-        loadPreviewCVSData('data/csv/GGE_v_CONS_subcortical.csv');
-        loadPreviewCVSData('data/csv/MTLE-L_vs_CONS_subcortical.csv');
-        loadPreviewCVSData('data/csv/MTLE-R_vs_CONS_subcortical.csv');
-        loadPreviewCVSData('data/csv/ALLOTHEREPILEPSIES_subcortical.csv');
+        loadPreviewCVSData('data/csv/allepilepsies_subcortical_fdr.csv');
+        loadPreviewCVSData('data/csv/ige_subcortical_fdr.csv');
+        loadPreviewCVSData('data/csv/mtle_l_subcortical_fdr.csv');
+        loadPreviewCVSData('data/csv/mtle_r_subcortical_fdr.csv');
+        loadPreviewCVSData('data/csv/allotherepilepsies_subcortical_fdr.csv');
     });
 
     document.getElementById('fileinput').addEventListener('change', three_dataLoader.loadRoisFileEventHandler, false);

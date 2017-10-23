@@ -31,7 +31,7 @@ var three_app = function (renderer) {
     loadRoiSpec('data/JHU-WhiteMatter-labels-1mm.nii', 'data/roiSpec3.txt', function (rois) {
         var allrois = globalRois.concat(rois);
         globalRois = allrois;
-        loadPreviewCVSData('data/csv/SZDTI_meta_D_SZPatVsCont_all_covariates.csv');
+        loadPreviewCVSData('data/csv/Patient-control_difference_in_FA_values.csv');
         //loadPreviewCVSData('data/csv/Table-3.csv');
         //loadPreviewCVSData('data/csv/Table-4.csv');
         //loadPreviewCVSData('data/csv/meta.csv');

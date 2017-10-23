@@ -6,7 +6,8 @@
 	    <title>Susceptibility to Schizophrenia and Heterochronicity of White Matter’s Life-Trajectory</title>
 	    <meta charset="utf-8">
 	    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-        <script src="./index_files/THREE/dat.gui.min.js"></script>
+         <!--<script src="./index_files/THREE/dat.gui.min.js"></script> -->
+        <script src="./index_files/THREE/dat.gui.js"></script>
         <link rel="stylesheet" href="./index_files/base.css" type="text/css">
         <link rel="stylesheet" href="./index_files/contextMenu/contextMenu.css" type="text/css" />
         <link rel="stylesheet" href="./index_files/jquery-ui.css">
@@ -119,60 +120,60 @@
         <link rel=stylesheet href="./index_files/info.css" />
         <script src="./index_files/info.js"></script>
         <!-- <div id="infoButton"></div> -->
-        <div id="infoBox" title="Credits">
+        <div id="infoBox" title="Credits" style="display:none;">
             <p>This program is a collaborative work by:</p>
             <p>Guohao Zhang (University of Maryland, Baltimore County)</p>
             <p>Peter Kochunov (University of Maryland, School of Medicine)</p>
             <p>Elliot Hong (University of Maryland, School of Medicine)</p>
             <p>Jian Chen (University of Maryland, Baltimore County)</p>
-            <p><a href="./UserGuide.pdf" target="_blank" ><font color="black">User Guide</font></a></p>
+            <p><a href="./UserGuide.pdf" target="_blank"><font color="black">User Guide</font></a></p>
         </div>
 
-        <!-- Contains Three JS Algorithm -->
-        <script src="./index_files/THREE/three.js"></script>
-        <!--<script src="./index_files/THREE/examples/js/controls/TrackballControls.js"></script>
+            <!-- Contains Three JS Algorithm -->
+            <script src="./index_files/THREE/three.js"></script>
+            <!--<script src="./index_files/THREE/examples/js/controls/TrackballControls.js"></script>
         <script src="./index_files/THREE/examples/js/controls/OrbitControls.js"></script>-->
-        <script src="./index_files/Detector.js"></script>
-        <script src="./index_files/Stats.js"></script>
+            <script src="./index_files/Detector.js"></script>
+            <script src="./index_files/Stats.js"></script>
 
-        <!--utility-->
-        <script src="./index_files/three_tooltip.js"></script>
-        <script src="./index_files/three_colorTable.js"></script>
-        <script src="./index_files/three_utility.js"></script>
-        <script src="./index_files/three_orbitControls.js"></script>
-        <script src="./index_files/three_trackballControl.js"></script>
+            <!--utility-->
+            <script src="./index_files/three_tooltip.js"></script>
+            <script src="./index_files/three_colorTable.js"></script>
+            <script src="./index_files/three_utility.js"></script>
+            <script src="./index_files/three_orbitControls.js"></script>
+            <script src="./index_files/three_trackballControl.js"></script>
 
-        <!--UI-->
-        <script src="./index_files/three_ui_object.js"></script>
-        <script src="./index_files/three_ui_panel.js"></script>
-        <script src="./index_files/three_ui_button.js"></script>
-        <script src="./index_files/three_ui_textBox.js"></script>
+            <!--UI-->
+            <script src="./index_files/three_ui_object.js"></script>
+            <script src="./index_files/three_ui_panel.js"></script>
+            <script src="./index_files/three_ui_button.js"></script>
+            <script src="./index_files/three_ui_textBox.js"></script>
 
-        <!-- Contains code for the image view -->
-        <script src="./index_files/three_imageView.js"></script>
+            <!-- Contains code for the image view -->
+            <script src="./index_files/three_imageView.js"></script>
 
-        <!-- Contains code for the spatial view -->
-        <script src="./index_files/MarchingCubesData.js"></script>
-        <script src="./index_files/three_marchingCubes.js"></script>
-        <script src="./index_files/three_marchingCubesRoi.js"></script>
-        <script id="vertexShader" type="x-shader/x-vertex">
-            uniform float transExp;
-            varying vec3 transformedNormal;
-            varying vec3 transformedPosition;
-            varying vec3 rawPos;
-            void main() {
-            rawPos = position;
-            transformedNormal = normalMatrix * normal;
-            transformedPosition = (modelViewMatrix * vec4( position, 1.0 )).xyz;
-            gl_Position = gl_Position = projectionMatrix * vec4( transformedPosition, 1.0 );
-            }
-        </script>
-        <script id="fragmentShader" type="x-shader/x-fragment">
-            uniform float transExp;
-            varying vec3 transformedNormal;
-            varying vec3 transformedPosition;
-            varying vec3 rawPos;
-            void main(){
+            <!-- Contains code for the spatial view -->
+            <script src="./index_files/MarchingCubesData.js"></script>
+            <script src="./index_files/three_marchingCubes.js"></script>
+            <script src="./index_files/three_marchingCubesRoi.js"></script>
+            <script id="vertexShader" type="x-shader/x-vertex">
+                uniform float transExp;
+                varying vec3 transformedNormal;
+                varying vec3 transformedPosition;
+                varying vec3 rawPos;
+                void main() {
+                rawPos = position;
+                transformedNormal = normalMatrix * normal;
+                transformedPosition = (modelViewMatrix * vec4( position, 1.0 )).xyz;
+                gl_Position = gl_Position = projectionMatrix * vec4( transformedPosition, 1.0 );
+                }
+            </script>
+            <script id="fragmentShader" type="x-shader/x-fragment">
+                uniform float transExp;
+                varying vec3 transformedNormal;
+                varying vec3 transformedPosition;
+                varying vec3 rawPos;
+                void main(){
                 vec3 lightDir = vec3(0, 0, 1);
                 float ambient = 0.3;
                 float diffusion = 0.6*clamp(dot(transformedNormal,lightDir), 0.0, 1.0);
@@ -198,127 +199,128 @@
                 //    gl_FragColor = vec4(0.6,0.6,0.6,1.0);
                 //    gl_FragColor.a = transExp / 30.0;
                 //}
-            }
-        </script>
-        <script id="vertexShader2" type="x-shader/x-vertex">
-            uniform float transExp;
-            uniform sampler2D textureImage;
-            uniform float textureScale2;
-            attribute float textureScale;
-            varying vec3 rawPos;
-            varying vec3 transformedNormal;
-            varying vec3 transformedPosition;
-            varying float fTexScale;
-            void main() {
-            fTexScale = textureScale;
-            rawPos = position;
-            transformedNormal = normalMatrix * normal;
-            transformedPosition = (modelViewMatrix * vec4( position, 1.0 )).xyz;
-            gl_Position = gl_Position = projectionMatrix * vec4( transformedPosition, 1.0 );
-            }
-        </script>
-        <script id="fragmentShader2" type="x-shader/x-fragment">
-            uniform float transExp;
-            uniform sampler2D textureImage;
-            varying vec3 rawPos;
-            varying vec3 transformedNormal;
-            varying vec3 transformedPosition;
-            varying float fTexScale;
-            void main(){
-            float textureScale = fTexScale;
-            vec3 lightDir = vec3(0, 0, 1);
-            float ambient = 0.3;
-            float diffusion = 0.9*clamp(dot(transformedNormal,lightDir), 0.0, 1.0);
-            //float diffusion = 0.6*abs(dot(transformedNormal,lightDir));
-            vec3 eyeDir = -normalize(transformedPosition);
-            //vec3 hv = normalize(eyeDir+lightDir);
-            vec3 hv = normalize(-reflect(lightDir,transformedNormal));
-            float specular = 0.3*pow(clamp(dot(hv,transformedNormal),0.0, 1.0), 16.0);
-            //float specular = 0.2*clamp(pow(abs(dot(hv,transformedNormal)), 16.0), 0.0, 1.0);
-            gl_FragColor = vec4(1,1,1,1);
-            gl_FragColor = gl_FragColor*(ambient+diffusion);
-            gl_FragColor += vec4(specular,specular,specular,0);
-            if(mod(rawPos.x*2.0, 7.0) < 7.0 *textureScale
+                }
+            </script>
+            <script id="vertexShader2" type="x-shader/x-vertex">
+                uniform float transExp;
+                uniform sampler2D textureImage;
+                uniform float textureScale2;
+                attribute float textureScale;
+                varying vec3 rawPos;
+                varying vec3 transformedNormal;
+                varying vec3 transformedPosition;
+                varying float fTexScale;
+                void main() {
+                fTexScale = textureScale;
+                rawPos = position;
+                transformedNormal = normalMatrix * normal;
+                transformedPosition = (modelViewMatrix * vec4( position, 1.0 )).xyz;
+                gl_Position = gl_Position = projectionMatrix * vec4( transformedPosition, 1.0 );
+                }
+            </script>
+            <script id="fragmentShader2" type="x-shader/x-fragment">
+                uniform float transExp;
+                uniform sampler2D textureImage;
+                varying vec3 rawPos;
+                varying vec3 transformedNormal;
+                varying vec3 transformedPosition;
+                varying float fTexScale;
+                void main(){
+                float textureScale = fTexScale;
+                vec3 lightDir = vec3(0, 0, 1);
+                float ambient = 0.3;
+                float diffusion = 0.9*clamp(dot(transformedNormal,lightDir), 0.0, 1.0);
+                //float diffusion = 0.6*abs(dot(transformedNormal,lightDir));
+                vec3 eyeDir = -normalize(transformedPosition);
+                //vec3 hv = normalize(eyeDir+lightDir);
+                vec3 hv = normalize(-reflect(lightDir,transformedNormal));
+                float specular = 0.3*pow(clamp(dot(hv,transformedNormal),0.0, 1.0), 16.0);
+                //float specular = 0.2*clamp(pow(abs(dot(hv,transformedNormal)), 16.0), 0.0, 1.0);
+                gl_FragColor = vec4(1,1,1,1);
+                gl_FragColor = gl_FragColor*(ambient+diffusion);
+                gl_FragColor += vec4(specular,specular,specular,0);
+                if(mod(rawPos.x*2.0, 7.0) < 7.0 *textureScale
                 || mod(rawPos.y*2.0, 7.0)< 7.0 * textureScale){
                 //gl_FragColor *= 3.0;
                 gl_FragColor.a = 1.0;
-            }
-            else{
+                }
+                else{
                 gl_FragColor = vec4(0.6,0.6,0.6,1.0);
                 gl_FragColor.a = transExp / 30.0;
-            }
-            }
-        </script>
-        <script src="./index_files/three_cortexMesh.js"></script>
-        <script src="./index_files/three_spatialView.js"></script>
-        <script src="./index_files/three_textureShaderMaterial.js"></script>
+                }
+                }
+            </script>
+            <script src="./index_files/three_cortexMesh.js"></script>
+            <script src="./index_files/three_spatialView.js"></script>
+            <script src="./index_files/three_textureShaderMaterial.js"></script>
 
-        <!-- Contains code for the statsStacker -->
-        <script src="./index_files/three_roiStatsStacker.js"></script>
-        <script src="./index_files/three_statsRiver.js"></script>
+            <!-- Contains code for the statsStacker -->
+            <script src="./index_files/three_roiStatsStacker.js"></script>
+            <script src="./index_files/three_statsRiver.js"></script>
 
-        <!-- Contains code for the bar lens -->
-        <script src="./index_files/three_barLens.js"></script>
-        <script src="./index_files/three_inplaceCharts.js"></script>
+            <!-- Contains code for the bar lens -->
+            <script src="./index_files/three_barLens.js"></script>
+            <script src="./index_files/three_inplaceCharts.js"></script>
 
-        <!-- Contains code for the Roi View -->
-        <script src="./index_files/three_legend.js"></script>
-        <script src="./index_files/three_legendManager.js"></script>
-        <script src="./index_files/three_axisTicks.js"></script>
-        <script src="./index_files/three_viewManager.js"></script>
-        <script src="./index_files/three_roi.js"></script>
-        <script src="./index_files/three_roiStats.js"></script>
-        <script src="./index_files/three_roiCompStats.js"></script>
-        <script src="./index_files/three_cohortRoiData.js"></script>
-        <script src="./index_files/three_cohortCompData.js"></script>
-        <script src="./index_files/three_roiBox.js"></script>
-        <script src="./index_files/three_roiBoxLayout.js"></script>
-        <script src="./index_files/three_roiSubView.js"></script>
-        <script src="./index_files/three_roiSubViewLinks.js"></script>
-        <script src="./index_files/three_roiView.js"></script>
-        <script src="./index_files/three_dataLoader.js"></script>
+            <!-- Contains code for the Roi View -->
+            <script src="./index_files/three_legend.js"></script>
+            <script src="./index_files/three_legendManager.js"></script>
+            <script src="./index_files/three_axisTicks.js"></script>
+            <script src="./index_files/three_viewManager.js"></script>
+            <script src="./index_files/three_roi.js"></script>
+            <script src="./index_files/three_roiStats.js"></script>
+            <script src="./index_files/three_roiCompStats.js"></script>
+            <script src="./index_files/three_cohortRoiData.js"></script>
+            <script src="./index_files/three_cohortCompData.js"></script>
+            <script src="./index_files/three_roiBox.js"></script>
+            <script src="./index_files/three_roiBoxLayout.js"></script>
+            <script src="./index_files/three_roiSubView.js"></script>
+            <script src="./index_files/three_roiSubViewLinks.js"></script>
+            <script src="./index_files/three_roiView.js"></script>
+            <script src="./index_files/three_dataLoader.js"></script>
 
-        <!-- data library. -->
-        <script src="./index_files/nifti.js"></script>
-        <script src="./index_files/zlib_and_gzip.min.js"></script>
-        <script src="./index_files/THREE/OBJLoader.js"></script>
-        <script src="./index_files/THREE/STLLoader.js"></script>
+            <!-- data library. -->
+            <script src="./index_files/nifti.js"></script>
+            <script src="./index_files/zlib_and_gzip.min.js"></script>
+            <script src="./index_files/THREE/OBJLoader.js"></script>
+            <script src="./index_files/THREE/STLLoader.js"></script>
 
-        <!-- interaction library. -->
-        <script src="./index_files/three_menus.js"></script>
+            <!-- interaction library. -->
+            <script src="./index_files/three_menus.js"></script>
 
-        <!--general-->
-        <script src="./cases/HBM-16-0075/three_app.js"></script>
+            <!--general-->
+            <script src="./cases/HBM-16-0075/three_app.js"></script>
 
-        <!-- jQuery code to display an information button and box when clicked. -->
-        <script src="./index_files/jquery-1.9.1.js"></script>
-        <script src="./index_files/jquery-ui.js"></script>
-        <script src="./index_files/info.js"></script>
+            <!-- jQuery code to display an information button and box when clicked. -->
+            <script src="./index_files/jquery-1.9.1.js"></script>
+            <script src="./index_files/jquery-ui.js"></script>
+            <script src="./index_files/info.js"></script>
 
-        <!-- context menu library. --><!-- 
+            <!-- context menu library. -->
+            <!--
         <script src="./index_files/contextMenu/contextMenu.js"></script>
                                           -->
 
-        <script>
-            if (!Detector.webgl) {
-                document.body.innerHTML = '<p>Your browser does not support webgl!</p>'+
-                    '<p>Please use the latest version of <a href="http://www.google.com/chrome/browser">Chrome</a> to run this program.</p>';
-            }
-            else {
-                var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-
-                document.body.appendChild(renderer.domElement);
-                app = new three_app(renderer);
-                app.init();
-
-                function animate() {
-                    requestAnimationFrame(animate);
-                    app.render();
-                    app.update();
+            <script>
+                if (!Detector.webgl) {
+                    document.body.innerHTML = '<p>Your browser does not support webgl!</p>' +
+                        '<p>Please use the latest version of <a href="http://www.google.com/chrome/browser">Chrome</a> to run this program.</p>';
                 }
-                animate();
-            }
-        </script>
+                else {
+                    var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 
-    </body>
+                    document.body.appendChild(renderer.domElement);
+                    app = new three_app(renderer);
+                    app.init();
+
+                    function animate() {
+                        requestAnimationFrame(animate);
+                        app.render();
+                        app.update();
+                    }
+                    animate();
+                }
+            </script>
+
+</body>
 </html>

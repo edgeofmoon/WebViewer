@@ -8,8 +8,6 @@ var three_spatialView = function () {
     //this.controls = new THREE.OrbitControls(this.camera);
     this.viewbox = new THREE.Box2(new THREE.Vector2(0, 0),
         new THREE.Vector2(window.innerWidth, window.innerHeight));
-    this.light0 = new THREE.SpotLight(0xffffff, 1.0);
-    this.light1 = new THREE.SpotLight(0xffffff, 1.0);
     this.cortexMeshes = [[], []];
     this.roiMesh = new Map();
     this.roiLoading = new Map();
@@ -125,8 +123,14 @@ var three_spatialView = function () {
     };
     this.clearAllData = function () {
         roiView.removeAllSubViews();
+        this.roiMesh.forEach(function (value, key, map) {
+            destoryThreeJsObjectFromScene(spatialView.scene, value);
+        })
+        this.roiMesh.clear();
     }
     this.resetCamera = function () {
+        this.animation = false;
+        this.onAnimation = false;
         this.camera.position.set(0, 0, 270);
         this.camera.lookAt(this.scene.position);
         this.camera.up.set(0, 1, 0);
@@ -191,6 +195,13 @@ var three_spatialView = function () {
     f2.add(this, 'inplaceChartsShow').name('Inplace charts').onChange(updateInplaceCharts);
     var f3 = gui.addFolder("Camera");
     f3.add(this, 'resetCamera').name('Reset Camera');
+    this.animation = false;
+    this.toggleAnimation = function () {
+        this.animation = true;
+        this.onAnimation = false;
+        gui.close();
+    }
+    f3.add(this, 'toggleAnimation').name('Animation');
     var f4 = gui.addFolder("Data");
     f4.add(this, 'updateData').name('Upload');
     f4.add(this, 'clearAllData').name('Clear All');
@@ -212,12 +223,107 @@ var three_spatialView = function () {
         ]).name('Existing Data');
     f4.add(this, 'loadExistingData').name('Load Existing Data');
     var f5 = gui.addFolder("About");
-    this.openInfoBox = function(){
-        $("#infoBox").dialog("open");
+    this.openInfoBox = function () {
+        if ($("#infoBox").is(":visible")) {
+            $("#infoBox").dialog("close");
+        }
+        else {
+            $("#infoBox").dialog("open");
+            $("#infoBox").css({
+                //"overflow": "auto",
+                //"resize": "both",
+            });
+        }
     }
     f5.add(this, 'openInfoBox').name('Credits');
-
+    /*
+    var f6 = gui.addFolder("Methods");
+    this.m0 = "30";
+    f6.add(this, 'm0').name("#Cohorts");
+    this.m1 = "14 countries";
+    f6.add(this, 'm1').name("#Nationalities");
+    this.m2 = "2391. Age: 36.03 (18-77), 53.4% male";
+    f6.add(this, 'm2').name("#Healthy Controls");
+    this.m3 = "1984. Age: 35.85 (18-86), 67% male";
+    f6.add(this, 'm3').name("#Schizophrenia");
+    this.m4 = "Eddy current correction, EPI induced distortion correction, and tensor fitting";
+    f6.add(this, 'm4').name("Preprocessing");
+    this.m5 = "ENIGMA-DTI";
+    f6.add(this, 'm5').name("Protocol");
+    this.m6 = "FA, MD, AD, RD are used. Scripts availabe: https://github.com/ENIGMA-git/ENIGMA/tree/master/WorkingGroups/EffectSize_and_GLM";
+    f6.add(this, 'm6').name("Per site analysis");
+    this.m7 = "A random-effects inverse-variance weighted meta-analysis was conducted at a central coordinating site (the University of Southern California Imaging Genetics Center)";
+    f6.add(this, 'm7').name("Meta analysis");
+    var f7 = gui.addFolder("Results");
+    this.m7 = "20 out of 25";
+    f7.add(this, 'm7').name("#Significatly lower FA regions");
+    this.m8 = "WM tracts interconnecting the frontal lobe, thalamus, cingulate gyrus and regions of the temporal lobe would be most severely affected.";
+    f7.add(this, 'm8').name("Observation");
+    this.m9 = "The largest effect size was observed for lower average FA (across the whole-brain WM skeleton) in schizophrenia patients, followed by body of the corpus callosum, the whole CC, the anterior corona radiate (ACR), and the genu of the CC (GCC).";
+    f7.add(this, 'm9').name("Observation");
     
+    this.openMethodBox = function () {
+        if ($("#methodBox2").is(":visible")) {
+            $("#methodBox2").dialog("close");
+        }
+        else {
+            $("#methodBox2").dialog("open");
+            $("#methodBox2").css({
+                "height": "200px !important",
+                "resize": "both",
+                "overflow": "auto",
+                "left": "10px !important",
+            });
+            methodBoxOpen = true;
+        }
+    }
+    var methodButton = gui.add(this, 'openMethodBox').name("Methods");
+    */
+    if ($("#resultBox").length) {
+
+        var resultBoxInited = false;
+        var resultBoxW;
+        var resultBoxH;
+        var resultBoxSt;
+        var resultBoxSl;
+        function saveResultBoxState() {
+            resultBoxW = $("#resultBox").width();
+            resultBoxH = $("#resultBox").height();
+            resultBoxSt = $("#resultBox").scrollTop();
+            resultBoxSl = $("#resultBox").scrollLeft();
+        }
+        function loadResultBoxState() {
+            $("#resultBox").width(resultBoxW);
+            $("#resultBox").height(resultBoxH);
+            $("#resultBox").scrollTop(resultBoxSt);
+            $("#resultBox").scrollLeft(resultBoxSl);
+        }
+        this.openResultBox = function () {
+            if ($("#resultBox").is(":visible")) {
+                $("#resultBox").dialog("close");
+                saveResultBoxState();
+            }
+            else {
+                $("#resultBox").dialog("open");
+                if (!resultBoxInited) {
+
+                    $("#resultBox").parent().css({
+                        "left": "10px",
+                    });
+                    $("#resultBox").height(400);
+                    saveResultBoxState();
+                    resultBoxInited = true;
+                }
+                else {
+                    loadResultBoxState();
+                }
+            }
+        }
+	var f7 = gui.addFolder("Methods&Results");
+        var methodButton = f7.add(this, 'openResultBox').name("Methods&Results");
+    }
+
+
 	 $("div.dg.main")
      .mousemove(function (ev) {
          ev.preventDefault();
@@ -283,15 +389,25 @@ var three_spatialView = function () {
         this.resetCamera();
 
         // setup light
-        this.light0.position.set(0, 0, 300);
+        this.light0 = new THREE.SpotLight(0xffffff, 1);
+        this.light0.position.set(0, 0, 1);
         this.light0.distance = 2000;
         //light.castShadow = true;
-        this.scene.add(this.light0);
+        this.camera.add(this.light0);
 
-        this.light1.position.set(0, 0, -300);
-        this.light1.distance = 2000;
+        this.scene.add(this.camera);
+
+        /*
+        this.light1 = new THREE.DirectionalLight(0xffffff, 0.5);
+        this.light1.position.set(0, 1, 0);
         //light2.castShadow = true;
         this.scene.add(this.light1);
+
+        this.light2 = new THREE.DirectionalLight(0xffffff, 0.5);
+        this.light2.position.set(1, 0, 0);
+        //light2.castShadow = true;
+        this.scene.add(this.light2);
+        */
 
         // setup axis
         this.scene.add(this.axisHelper);
@@ -445,6 +561,9 @@ var three_spatialView = function () {
                 colorMaterial.color = color.clone();
                 colorMaterial.effectColor = color.clone();
             }
+           // colorMaterial.effectColor.r = Math.random();
+           // colorMaterial.effectColor.g = Math.random();
+           // colorMaterial.effectColor.g = Math.random();
             var mesh = new THREE.Mesh(geometry, colorMaterial);
             if (roi.type == 'cortical') {
                 colorMaterial.transparent = true;
@@ -595,7 +714,57 @@ var three_spatialView = function () {
     }
     // render function
     this.render = function () {
+
         this.controls.update();
+        if (this.animation) {
+            if (!this.onAnimation) {
+                this.startTime = (new Date).getTime();
+                this.onAnimation = true;
+            }
+            var currentTime = (new Date).getTime();
+            var animationSpeedModifier = 1.5;
+            var totalElapseTime = (currentTime - this.startTime) * 0.001 * animationSpeedModifier;
+            var waitTime = 3;
+            if (totalElapseTime > waitTime) {
+                var elapseTime = totalElapseTime - waitTime;
+                var phi = 0, theta = 0;
+                if (elapseTime < 9) {
+                    phi = 90 - elapseTime * 10;
+                    theta = 270;
+                    this.camera.up.set(0, 1, 0);
+                }
+                else if (elapseTime < 18) {
+                    phi = 90 - elapseTime * 10;
+                    theta = 270;
+                    this.camera.up.set(0, -1, 1);
+                }
+                else if (elapseTime < 27) {
+                    phi = -90 + (elapseTime-18) * 10;
+                    theta = 270;
+                    this.camera.up.set(0, -1, 0);
+                }
+                else if (elapseTime < 63) {
+                    phi = 0;
+                    theta = 270 - (elapseTime - 27) * 10;
+                    this.camera.up.set(0, 0, 1);
+                }
+                else {
+                    this.animation = false;
+                    this.onAnimation = false;
+                    phi = 0;
+                    theta = 270;
+                }
+                var R = 270;
+                var d2r = 3.1415926 / 180;
+                var z = R * Math.sin(phi * d2r);
+                var y = R * Math.cos(phi * d2r) * Math.sin(theta * d2r);
+                var x = R * Math.cos(phi * d2r) * Math.cos(theta * d2r);
+                this.camera.position.set(x, y, z);
+                this.camera.lookAt(this.scene.position);
+            }
+        }
+
+
         renderer.setViewport(this.viewbox.min.x, this.viewbox.min.y, this.viewbox.size().x, this.viewbox.size().y);
         renderer.setScissor(this.viewbox.min.x, this.viewbox.min.y, this.viewbox.size().x, this.viewbox.size().y);
 
